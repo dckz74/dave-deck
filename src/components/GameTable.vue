@@ -193,7 +193,7 @@ function pointsClass(sum: number): string {
               <div
                 class="points"
                 :class="[
-                  pointsClass(opponentSum),
+                  pointsClass(opponentVisibleSum),
                   {
                     'points--winner':
                       game.lastRoundWinner === 'opponent' && game.phase === 'round_result',
