@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "build": {
-    "env": {
-      "VITE_WEBSOCKET_URL": "@websocket_url"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
@@ -20,7 +15,7 @@
           "value": "DENY"
         },
         {
-          "key": "X-Content-Type-Options", 
+          "key": "X-Content-Type-Options",
           "value": "nosniff"
         }
       ]
