@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:run)",
+      "Bash(npm run dev)",
+      "Bash(npm run test src/stores/game.spec.ts)",
+      "Bash(npm run test:run src/integration.spec.ts)",
+      "Bash(npm run build)",
+      "WebFetch(domain:localhost)",
+      "Bash(npx vue-tsc --noEmit)",
+      "Bash(npm test)",
+      "Bash(npm run lint)",
+      "Bash(npm run type-check)",
+      "Bash(npm run)",
+      "Bash(sed -n '456,466p' /Users/david_lotum/projects/dave-deck/src/stores/game.ts)",
+      "Bash(sed -n '445,465p' /Users/david_lotum/projects/dave-deck/src/stores/game.ts)",
+      "Bash(npx vue-tsc --noEmit --skipLibCheck)",
+      "WebSearch",
+      "Bash(lsof -ti:3001)",
+      "Bash(kill -9 29516)",
+      "Bash(curl http://localhost:3001/health)",
+      "Bash(npm install)",
+      "Bash(node --check server.js)",
+      "Bash(node server.js)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(vite)",
+      "Bash(npx vue-tsc --noEmit --skipLibCheck src/components/GameTable.vue)",
+      "Bash(curl -s \"http://localhost:5173\")",
+      "Bash(open http://localhost:5173/test-websocket.html)",
+      "Bash(open http://localhost:5173)",
+      "Bash(open \"http://localhost:5173/?join=8WKO6N\")",
+      "Bash(open \"http://localhost:5173/?join=TEST123\")",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(kill -9 69958)",
+      "Bash(npm install redis)",
+      "Bash(chmod +x /Users/david_lotum/projects/dave-deck/scripts/setup-dev.sh)",
+      "Bash(VITE_WEBSOCKET_URL=https://example.com npm run build)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

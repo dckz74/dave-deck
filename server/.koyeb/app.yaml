@@ -1,0 +1,36 @@
+name: dave-deck-server
+type: docker
+
+# Build configuration
+build:
+  context: .
+  dockerfile: Dockerfile
+
+# Service configuration
+services:
+  - name: web
+    ports:
+      - port: 3001
+        protocol: http
+        public: true
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: FRONTEND_URL
+        scope: project # Set this in Koyeb dashboard
+    # Health check using the existing /health endpoint
+    health_checks:
+      - path: /health
+        port: 3001
+        initial_delay: 30
+        timeout: 10
+        interval: 30
+        retries: 3
+
+# Resource allocation
+regions:
+  - fra # Frankfurt - change based on your target audience
+
+instance_type: nano # Start small, can scale up

@@ -1,0 +1,118 @@
+:root {
+  --color-bg: #1a1a2e;
+  --color-surface: #16213e;
+  --color-primary: #0f3460;
+  --color-accent: #e94560;
+  --color-success: #4ade80;
+  --color-text: #eaeaea;
+  --color-text-muted: #a0a0a0;
+  --radius: 12px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --transition-fast: 150ms;
+  --transition-normal: 280ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* GPU-freundliche Animationen - Globale Optimierungen */
+*[class*="animate"], *[class*="transition"] {
+  /* Force GPU acceleration for all animated elements */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Improved page transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-normal) ease;
+  transform: translateZ(0); /* GPU acceleration */
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Global animation performance optimizations */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    /* Smooth 60fps transitions */
+    --animation-duration-fast: 150ms;
+    --animation-duration-normal: 300ms;
+    --animation-duration-slow: 500ms;
+    --animation-timing: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --animation-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  /* Enable smooth scrolling and animations */
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    /* Faster animations for reduced motion preference */
+    --animation-duration-fast: 50ms;
+    --animation-duration-normal: 100ms;
+    --animation-duration-slow: 150ms;
+  }
+  
+  /* Disable complex animations */
+  *, *::before, *::after {
+    animation-duration: var(--animation-duration-fast) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--animation-duration-fast) !important;
+  }
+}
+
+/* High-performance button hover effects */
+button, .btn {
+  will-change: transform;
+  transition: transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+}
+
+button:hover, .btn:hover {
+  transform: translateY(-1px) translateZ(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active, .btn:active {
+  transform: translateY(0) translateZ(0);
+  transition-duration: 100ms;
+}
+
+/* Optimized glow effects for performance */
+@keyframes soft-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(233, 69, 96, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(233, 69, 96, 0.6), 0 0 30px rgba(233, 69, 96, 0.4);
+  }
+}
