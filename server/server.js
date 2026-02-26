@@ -2,7 +2,6 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
-import { v4 as uuidv4 } from 'uuid'
 import SessionStorage from './storage.js'
 
 const app = express()
@@ -315,9 +314,9 @@ io.on('connection', (socket) => {
   })
   
   // Game action (hit, skip, chip)
-  socket.on('game-action', (actionData) => {
-    const sessionId = playerSessions.get(socket.id)
-    const session = gameSessions.get(sessionId)
+  socket.on('game-action', async(actionData) => {
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
     
     if (!session || session.status !== 'playing') {
       socket.emit('error', { message: 'Invalid game action' })
@@ -365,9 +364,9 @@ io.on('connection', (socket) => {
   })
   
   // Round transition (triggered when a round ends and new round should start)
-  socket.on('round-transition', (data) => {
-    const sessionId = playerSessions.get(socket.id)
-    const session = gameSessions.get(sessionId)
+  socket.on('round-transition', async (data) => {
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
     
     if (!session || session.status !== 'playing') return
     
@@ -417,9 +416,9 @@ io.on('connection', (socket) => {
   })
 
   // Game over
-  socket.on('game-over', (gameResult) => {
-    const sessionId = playerSessions.get(socket.id)
-    const session = gameSessions.get(sessionId)
+  socket.on('game-over', async (gameResult) => {
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
     
     if (!session) return
     
@@ -457,9 +456,9 @@ io.on('connection', (socket) => {
   })
   
   // Request rematch
-  socket.on('request-rematch', () => {
-    const sessionId = playerSessions.get(socket.id)
-    const session = gameSessions.get(sessionId)
+  socket.on('request-rematch', async () => {
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
     
     if (!session) return
     
@@ -472,9 +471,9 @@ io.on('connection', (socket) => {
   })
   
   // Accept/decline rematch
-  socket.on('rematch-response', (accepted) => {
-    const sessionId = playerSessions.get(socket.id)
-    const session = gameSessions.get(sessionId)
+  socket.on('rematch-response', async (accepted) => {
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
     
     if (!session) return
     
@@ -492,10 +491,10 @@ io.on('connection', (socket) => {
   })
   
   // Update player name
-  socket.on('update-player-name', (data) => {
+  socket.on('update-player-name',async (data) => {
     const { playerName } = data
-    const sessionId = playerSessions.get(socket.id)
-    const session = gameSessions.get(sessionId)
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
     
     if (!session) return
     
@@ -570,7 +569,7 @@ app.get('/api/sessions/:sessionId', async (req, res) => {
 
 const PORT = process.env.PORT || 3001
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🎮 Dave Deck multiplayer server running on port ${PORT}`)
   console.log(`📡 WebSocket endpoint: ws://localhost:${PORT}`)
 })
