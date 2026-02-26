@@ -14,30 +14,30 @@ export interface GameStatistics {
   gamesPlayed: number
   gamesWon: number
   gamesLost: number
-  
-  // Round performance  
+
+  // Round performance
   roundsPlayed: number
   roundsWon: number
   roundsLost: number
   roundsDrawn: number
-  
+
   // Card statistics (as per rules.md)
   cardsDrawn: number
   totalHandValue: number // for calculating average
   perfectHands: number // exactly at limit
   bustCount: number // over limit
-  
+
   // Chip usage statistics (as per rules.md)
   chipsUsed: number
   chipUsageByType: Record<ChipKind, number>
-  
+
   // Advanced performance metrics
   comebackWins: number // won after being behind in lives
   currentWinStreak: number
   longestWinStreak: number
   currentLossStreak: number
   longestLossStreak: number
-  
+
   // Specific achievement counters
   comebackSpecialistWins: number // wins with 1 life remaining
   lowLimitWins: number // wins with limit 17
@@ -45,20 +45,20 @@ export interface GameStatistics {
   closeCalls: number // wins by exactly 1 point
   epicHands: number // hands with 23+ value
   chipCollectionCount: number // times chips were received from card draws
-  
+
   // Chip usage achievement counters
   perfectDrawsUsed: number
-  limitManipulatorUsed: number 
+  limitManipulatorUsed: number
   shieldUsed: number
   aggressiveChipsUsed: number
   cardSwapUsed: number
-  
+
   // Time tracking
   totalPlaytimeMs: number
   gameStartTime: number | null
   shortestGameMs: number | null
   longestGameMs: number | null
-  
+
   // Achievements
   firstWin: boolean
   perfectGame: boolean // won without losing any lives
@@ -73,17 +73,17 @@ function createDefaultStatistics(): GameStatistics {
     gamesPlayed: 0,
     gamesWon: 0,
     gamesLost: 0,
-    
+
     roundsPlayed: 0,
     roundsWon: 0,
     roundsLost: 0,
     roundsDrawn: 0,
-    
+
     cardsDrawn: 0,
     totalHandValue: 0,
     perfectHands: 0,
     bustCount: 0,
-    
+
     chipsUsed: 0,
     chipUsageByType: {
       [ChipKind.Draw2]: 0,
@@ -104,13 +104,13 @@ function createDefaultStatistics(): GameStatistics {
       [ChipKind.Shield]: 0,
       [ChipKind.ShieldPlus]: 0,
     },
-    
+
     comebackWins: 0,
     currentWinStreak: 0,
     longestWinStreak: 0,
     currentLossStreak: 0,
     longestLossStreak: 0,
-    
+
     // Achievement counters
     comebackSpecialistWins: 0,
     lowLimitWins: 0,
@@ -118,19 +118,19 @@ function createDefaultStatistics(): GameStatistics {
     closeCalls: 0,
     epicHands: 0,
     chipCollectionCount: 0,
-    
+
     // Chip usage counters
     perfectDrawsUsed: 0,
     limitManipulatorUsed: 0,
     shieldUsed: 0,
     aggressiveChipsUsed: 0,
     cardSwapUsed: 0,
-    
+
     totalPlaytimeMs: 0,
     gameStartTime: null,
     shortestGameMs: null,
     longestGameMs: null,
-    
+
     firstWin: false,
     perfectGame: false,
     perfectGamesCount: 0,
@@ -163,28 +163,28 @@ function saveStatistics(stats: GameStatistics): void {
 export const useStatisticsStore = defineStore('statistics', () => {
   const stats = ref<GameStatistics>(loadStatistics())
   const achievementStore = useAchievementStore()
-  
+
   // Computed metrics
-  const winRate = computed(() => 
+  const winRate = computed(() =>
     stats.value.gamesPlayed > 0 ? (stats.value.gamesWon / stats.value.gamesPlayed) * 100 : 0
   )
-  
-  const roundWinRate = computed(() => 
+
+  const roundWinRate = computed(() =>
     stats.value.roundsPlayed > 0 ? (stats.value.roundsWon / stats.value.roundsPlayed) * 100 : 0
   )
-  
+
   const averageHandValue = computed(() =>
     stats.value.cardsDrawn > 0 ? stats.value.totalHandValue / stats.value.cardsDrawn : 0
   )
-  
+
   const bustRate = computed(() =>
     stats.value.roundsPlayed > 0 ? (stats.value.bustCount / stats.value.roundsPlayed) * 100 : 0
   )
-  
+
   const averageGameDuration = computed(() =>
     stats.value.gamesPlayed > 0 ? stats.value.totalPlaytimeMs / stats.value.gamesPlayed : 0
   )
-  
+
   const favoriteChip = computed(() => {
     let maxUsage = 0
     let favorite: ChipKind | null = null
@@ -196,21 +196,25 @@ export const useStatisticsStore = defineStore('statistics', () => {
     }
     return favorite
   })
-  
+
   // Game lifecycle tracking
   function startGame(): void {
     stats.value.gameStartTime = Date.now()
   }
-  
-  function endGame(winner: PlayerId, playerLivesRemaining: number, gameMode: 'single-player' | 'multiplayer' = 'single-player'): void {
+
+  function endGame(
+    winner: PlayerId,
+    playerLivesRemaining: number,
+    gameMode: 'single-player' | 'multiplayer' = 'single-player'
+  ): void {
     const now = Date.now()
     const gameStartTime = stats.value.gameStartTime
     let gameDuration = 0
-    
+
     if (gameStartTime) {
       gameDuration = now - gameStartTime
       stats.value.totalPlaytimeMs += gameDuration
-      
+
       // Track shortest/longest games
       if (stats.value.shortestGameMs === null || gameDuration < stats.value.shortestGameMs) {
         stats.value.shortestGameMs = gameDuration
@@ -218,58 +222,58 @@ export const useStatisticsStore = defineStore('statistics', () => {
       if (stats.value.longestGameMs === null || gameDuration > stats.value.longestGameMs) {
         stats.value.longestGameMs = gameDuration
       }
-      
+
       stats.value.gameStartTime = null
     }
-    
+
     stats.value.gamesPlayed++
-    
+
     const playerWon = winner === 'player'
-    
+
     if (playerWon) {
       stats.value.gamesWon++
       stats.value.currentWinStreak++
       stats.value.currentLossStreak = 0
-      
+
       if (stats.value.currentWinStreak > stats.value.longestWinStreak) {
         stats.value.longestWinStreak = stats.value.currentWinStreak
       }
-      
+
       // Achievement: First win
       if (!stats.value.firstWin) {
         stats.value.firstWin = true
       }
-      
+
       // Achievement: Perfect game (won without losing lives)
       const perfectGame = playerLivesRemaining === 5
       if (perfectGame) {
         stats.value.perfectGame = true
         stats.value.perfectGamesCount++
       }
-      
+
       // Check for comeback win (won with fewer lives than started)
       const comebackWin = playerLivesRemaining < 5
       if (comebackWin) {
         stats.value.comebackWins++
       }
-      
+
       // Track victory achievements
       achievementStore.trackVictory(
-        stats.value.gamesWon, 
-        perfectGame, 
-        comebackWin, 
+        stats.value.gamesWon,
+        perfectGame,
+        comebackWin,
         stats.value.currentWinStreak,
         stats.value.perfectGamesCount,
         stats.value.comebackWins
       )
-      
+
       // Track special achievements for critical wins
       if (playerLivesRemaining === 1) {
         // Last stand achievement (won with 1 life remaining)
         stats.value.comebackSpecialistWins++
         achievementStore.updateProgress('comeback_specialist', stats.value.comebackSpecialistWins)
       }
-      
+
       // Track AI victories specifically (only for single-player games)
       if (gameMode === 'single-player') {
         achievementStore.updateProgress('ai_nemesis', stats.value.gamesWon)
@@ -279,7 +283,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
         achievementStore.updateProgress('multiplayer_streak', stats.value.currentWinStreak)
         // TODO: Track social_gamer (requires tracking unique opponents)
       }
-      
+
       // Track game statistics achievements
       achievementStore.trackGameStats({
         gamesPlayed: stats.value.gamesPlayed,
@@ -288,24 +292,31 @@ export const useStatisticsStore = defineStore('statistics', () => {
         gameDuration,
         handValue: Math.round(stats.value.totalHandValue / Math.max(stats.value.cardsDrawn, 1)), // Average hand value
         roundsWon: stats.value.roundsWon,
-        limit: 21 // Default limit, could be tracked per game if needed
+        limit: 21, // Default limit, could be tracked per game if needed
       })
     } else {
       stats.value.gamesLost++
       stats.value.currentLossStreak++
       stats.value.currentWinStreak = 0
-      
+
       if (stats.value.currentLossStreak > stats.value.longestLossStreak) {
         stats.value.longestLossStreak = stats.value.currentLossStreak
       }
     }
-    
+
     saveStatistics(stats.value)
   }
-  
-  function recordRoundResult(winner: PlayerId | 'draw', handValue: number, wasAtLimit: boolean, wasBust: boolean, roundLimit?: number, opponentSum?: number): void {
+
+  function recordRoundResult(
+    winner: PlayerId | 'draw',
+    handValue: number,
+    wasAtLimit: boolean,
+    wasBust: boolean,
+    roundLimit?: number,
+    opponentSum?: number
+  ): void {
     stats.value.roundsPlayed++
-    
+
     if (winner === 'player') {
       stats.value.roundsWon++
     } else if (winner === 'opponent') {
@@ -313,7 +324,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
     } else {
       stats.value.roundsDrawn++
     }
-    
+
     // Track hand statistics
     stats.value.totalHandValue += handValue
     if (wasAtLimit) {
@@ -322,7 +333,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
     if (wasBust) {
       stats.value.bustCount++
     }
-    
+
     // Track round-specific achievements
     if (winner === 'player' && roundLimit) {
       // Track limit-specific wins
@@ -333,7 +344,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
         stats.value.highLimitWins++
         achievementStore.updateProgress('high_limit_wins', stats.value.highLimitWins)
       }
-      
+
       // Track close calls (won by exactly 1 point)
       if (opponentSum && handValue <= roundLimit && opponentSum <= roundLimit) {
         const margin = handValue - opponentSum
@@ -342,41 +353,41 @@ export const useStatisticsStore = defineStore('statistics', () => {
           achievementStore.updateProgress('close_calls', stats.value.closeCalls)
         }
       }
-      
+
       // Track epic hands (23+)
       if (handValue >= 23) {
         stats.value.epicHands++
         achievementStore.updateProgress('epic_hands', stats.value.epicHands)
       }
-      
+
       // Track perfect hands achievement
       if (wasAtLimit) {
         achievementStore.updateProgress('perfect_hands', stats.value.perfectHands)
       }
     }
-    
+
     // Track round count achievement
     achievementStore.updateProgress('round_warrior', stats.value.roundsPlayed)
-    
+
     saveStatistics(stats.value)
   }
-  
+
   function recordCardDrawn(chipReceived?: boolean): void {
     stats.value.cardsDrawn++
-    
+
     // Track chip collection when chips are received from card draws
     if (chipReceived) {
       stats.value.chipCollectionCount++
       achievementStore.updateProgress('chip_collector', stats.value.chipCollectionCount)
     }
-    
+
     saveStatistics(stats.value)
   }
-  
+
   function recordChipUsed(chipKind: ChipKind): void {
     stats.value.chipsUsed++
     stats.value.chipUsageByType[chipKind]++
-    
+
     // Increment specific chip usage counters for achievements
     if (chipKind === ChipKind.PerfectDraw) {
       stats.value.perfectDrawsUsed++
@@ -393,35 +404,36 @@ export const useStatisticsStore = defineStore('statistics', () => {
     if (chipKind === ChipKind.SwapCards) {
       stats.value.cardSwapUsed++
     }
-    
+
     // Check if player has used all chip types (achievement)
     const hasUsedAllChips = Object.values(stats.value.chipUsageByType).every(usage => usage > 0)
     if (hasUsedAllChips) {
       stats.value.chipMaster = true
     }
-    
+
     // Track chip usage achievements
     achievementStore.trackChipUsage(
-      chipKind, 
-      stats.value.perfectDrawsUsed, 
-      stats.value.limitManipulatorUsed, 
-      stats.value.shieldUsed, 
-      stats.value.aggressiveChipsUsed, 
+      chipKind,
+      stats.value.perfectDrawsUsed,
+      stats.value.limitManipulatorUsed,
+      stats.value.shieldUsed,
+      stats.value.aggressiveChipsUsed,
       stats.value.cardSwapUsed
     )
-    
+
     // Track chip master achievement (using different chip types)
-    const uniqueChipsUsed = Object.values(stats.value.chipUsageByType).filter(count => count > 0).length
+    const uniqueChipsUsed = Object.values(stats.value.chipUsageByType).filter(
+      count => count > 0
+    ).length
     achievementStore.updateProgress('chip_master', uniqueChipsUsed)
-    
+
     saveStatistics(stats.value)
   }
-  
-  
+
   return {
     // State
     stats,
-    
+
     // Computed metrics
     winRate,
     roundWinRate,
@@ -429,7 +441,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
     bustRate,
     averageGameDuration,
     favoriteChip,
-    
+
     // Actions
     startGame,
     endGame,

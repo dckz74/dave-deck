@@ -3,13 +3,7 @@
  * Reine Logik – keine Vue/Pinia. Vgl. rules.md.
  */
 
-import {
-  createDeck,
-  drawFromDeck,
-  drawCardByValue,
-  shuffleDeck,
-  getBestCardValue,
-} from './deck'
+import { createDeck, drawFromDeck, drawCardByValue, shuffleDeck, getBestCardValue } from './deck'
 import { evaluateRound } from './round'
 import {
   DEFAULT_LIMIT,
@@ -30,21 +24,42 @@ function nextChipId(): string {
 }
 
 /** Ob ein Chip ein "Zieh X" ist (Wert 2–7). */
-export function isDrawValueChip(kind: ChipKind): kind is ChipKind.Draw2 | ChipKind.Draw3 | ChipKind.Draw4 | ChipKind.Draw5 | ChipKind.Draw6 | ChipKind.Draw7 {
-  return [ChipKind.Draw2, ChipKind.Draw3, ChipKind.Draw4, ChipKind.Draw5, ChipKind.Draw6, ChipKind.Draw7].includes(kind)
+export function isDrawValueChip(
+  kind: ChipKind
+): kind is
+  | ChipKind.Draw2
+  | ChipKind.Draw3
+  | ChipKind.Draw4
+  | ChipKind.Draw5
+  | ChipKind.Draw6
+  | ChipKind.Draw7 {
+  return [
+    ChipKind.Draw2,
+    ChipKind.Draw3,
+    ChipKind.Draw4,
+    ChipKind.Draw5,
+    ChipKind.Draw6,
+    ChipKind.Draw7,
+  ].includes(kind)
 }
 
 /** Ob ein Chip das Limit verschiebt (17/24/27). */
-export function isLimitChip(kind: ChipKind): kind is ChipKind.Limit17 | ChipKind.Limit24 | ChipKind.Limit27 {
+export function isLimitChip(
+  kind: ChipKind
+): kind is ChipKind.Limit17 | ChipKind.Limit24 | ChipKind.Limit27 {
   return [ChipKind.Limit17, ChipKind.Limit24, ChipKind.Limit27].includes(kind)
 }
 
 function limitFromChip(kind: ChipKind.Limit17 | ChipKind.Limit24 | ChipKind.Limit27): RoundLimit {
   switch (kind) {
-    case ChipKind.Limit17: return 17
-    case ChipKind.Limit24: return 24
-    case ChipKind.Limit27: return 27
-    default: return DEFAULT_LIMIT
+    case ChipKind.Limit17:
+      return 17
+    case ChipKind.Limit24:
+      return 24
+    case ChipKind.Limit27:
+      return 27
+    default:
+      return DEFAULT_LIMIT
   }
 }
 
@@ -141,13 +156,13 @@ export function startNewRound(state: GameState, options: StartNewRoundOptions): 
   s.round.currentTurn = options.startingPlayer || 'player'
   s.lastRoundWinner = null
   s.phase = 'playing'
-  s.player.chips = options.playerChips.map((c) => ({ kind: c.kind, id: c.id }))
-  s.opponent.chips = options.opponentChips.map((c) => ({ kind: c.kind, id: c.id }))
+  s.player.chips = options.playerChips.map(c => ({ kind: c.kind, id: c.id }))
+  s.opponent.chips = options.opponentChips.map(c => ({ kind: c.kind, id: c.id }))
   return s
 }
 
 /** Nach Chip-Nutzung: Chip ist verbraucht, „Doppel-Skip" wird zurückgesetzt, aber Zug bleibt beim aktuellen Spieler. */
-function afterChipUsed(s: GameState, _playerId: PlayerId): void {
+function afterChipUsed(s: GameState): void {
   s.round.lastMoveWasSkip = false
   // Zug wechselt NICHT - Spieler kann weitere Chips nutzen oder Hit/Skip machen
 }
@@ -156,7 +171,7 @@ function afterChipUsed(s: GameState, _playerId: PlayerId): void {
 export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameState | null {
   if (state.phase !== 'playing' || state.round.currentTurn !== playerId) return null
   const me = playerId === 'player' ? state.player : state.opponent
-  const chipIndex = me.chips.findIndex((c) => c.id === chip.id)
+  const chipIndex = me.chips.findIndex(c => c.id === chip.id)
   if (chipIndex === -1) return null
 
   const s = cloneState(state)
@@ -165,7 +180,10 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
   const deck = s.round.deck
 
   const removeChip = () => {
-    myHand.chips.splice(myHand.chips.findIndex((c) => c.id === chip.id), 1)
+    myHand.chips.splice(
+      myHand.chips.findIndex(c => c.id === chip.id),
+      1
+    )
   }
 
   switch (chip.kind) {
@@ -175,11 +193,22 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
     case ChipKind.Draw5:
     case ChipKind.Draw6:
     case ChipKind.Draw7: {
-      const value = chip.kind === ChipKind.Draw2 ? 2 : chip.kind === ChipKind.Draw3 ? 3 : chip.kind === ChipKind.Draw4 ? 4 : chip.kind === ChipKind.Draw5 ? 5 : chip.kind === ChipKind.Draw6 ? 6 : 7
+      const value =
+        chip.kind === ChipKind.Draw2
+          ? 2
+          : chip.kind === ChipKind.Draw3
+            ? 3
+            : chip.kind === ChipKind.Draw4
+              ? 4
+              : chip.kind === ChipKind.Draw5
+                ? 5
+                : chip.kind === ChipKind.Draw6
+                  ? 6
+                  : 7
       const card = drawCardByValue(deck, value as CardValue)
       if (card) myHand.hand.push(card)
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     }
     case ChipKind.Limit17:
@@ -187,7 +216,7 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
     case ChipKind.Limit27:
       s.round.limit = limitFromChip(chip.kind)
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     case ChipKind.SwapCards: {
       if (myHand.hand.length >= 2 && otherHand.hand.length >= 2) {
@@ -197,18 +226,18 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
         otherHand.hand[otherHand.hand.length - 1] = myLast
       }
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     }
     case ChipKind.StakePlus1:
       s.round.stakeModifier += 1
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     case ChipKind.StakePlus2:
       s.round.stakeModifier += 2
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     case ChipKind.ReturnMyCard: {
       if (myHand.hand.length >= 2) {
@@ -218,7 +247,7 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
         shuffleDeck(s.round.deck)
       }
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     }
     case ChipKind.ReturnOpponentCard: {
@@ -229,7 +258,7 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
         shuffleDeck(s.round.deck)
       }
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     }
     case ChipKind.PerfectDraw: {
@@ -238,20 +267,20 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
       const card = bestValue !== undefined ? drawCardByValue(deck, bestValue) : undefined
       if (card) myHand.hand.push(card)
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     }
     case ChipKind.Shield:
       if (playerId === 'player') s.round.shieldPlayer += 1
       else s.round.shieldOpponent += 1
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     case ChipKind.ShieldPlus:
       if (playerId === 'player') s.round.shieldPlayer += 2
       else s.round.shieldOpponent += 2
       removeChip()
-      afterChipUsed(s, playerId)
+      afterChipUsed(s)
       return s
     default:
       return null
@@ -274,7 +303,13 @@ export function hit(state: GameState, playerId: PlayerId): GameState | null {
 }
 
 /** Skip: Zug Ende. Wenn Gegner zuletzt auch Skip gemacht hat → Runde auswerten. */
-export function skip(state: GameState, playerId: PlayerId): { state: GameState; roundResult?: { winner: PlayerId | 'draw'; lifeLost: PlayerId | null; lifeAmount: number } } {
+export function skip(
+  state: GameState,
+  playerId: PlayerId
+): {
+  state: GameState
+  roundResult?: { winner: PlayerId | 'draw'; lifeLost: PlayerId | null; lifeAmount: number }
+} {
   if (state.phase !== 'playing' || state.round.currentTurn !== playerId) return { state }
   const s = cloneState(state)
   const wasSkip = s.round.lastMoveWasSkip
@@ -298,14 +333,35 @@ export function skip(state: GameState, playerId: PlayerId): { state: GameState; 
       const next = applyLifeLoss(s, result.lifeLost, result.lifeAmount)
       next.lastRoundWinner = result.winner
       if (next.phase === 'game_over') {
-        return { state: next, roundResult: { winner: result.winner, lifeLost: result.lifeLost, lifeAmount: result.lifeAmount } }
+        return {
+          state: next,
+          roundResult: {
+            winner: result.winner,
+            lifeLost: result.lifeLost,
+            lifeAmount: result.lifeAmount,
+          },
+        }
       }
       next.phase = 'round_result'
-      return { state: next, roundResult: { winner: result.winner, lifeLost: result.lifeLost, lifeAmount: result.lifeAmount } }
+      return {
+        state: next,
+        roundResult: {
+          winner: result.winner,
+          lifeLost: result.lifeLost,
+          lifeAmount: result.lifeAmount,
+        },
+      }
     }
     s.lastRoundWinner = result.winner
     s.phase = 'round_result'
-    return { state: s, roundResult: { winner: result.winner, lifeLost: result.lifeLost, lifeAmount: result.lifeAmount } }
+    return {
+      state: s,
+      roundResult: {
+        winner: result.winner,
+        lifeLost: result.lifeLost,
+        lifeAmount: result.lifeAmount,
+      },
+    }
   }
   return { state: s }
 }

@@ -19,6 +19,7 @@ export interface Card {
 export type PlayerId = 'player' | 'opponent'
 
 /** Chip-Typen laut rules.md §5 */
+/* eslint-disable no-unused-vars */
 export enum ChipKind {
   Draw2 = 'draw_2',
   Draw3 = 'draw_3',

@@ -7,11 +7,12 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ChipKind } from '@/game/types'
 
+/* eslint-disable no-unused-vars */
 export enum AchievementTier {
   Bronze = 'bronze',
-  Silver = 'silver', 
+  Silver = 'silver',
   Gold = 'gold',
-  Platinum = 'platinum'
+  Platinum = 'platinum',
 }
 
 export interface Achievement {
@@ -53,8 +54,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
       bronze: { threshold: 5, title: 'First Blood' },
       silver: { threshold: 25, title: 'Seasoned Fighter' },
       gold: { threshold: 100, title: 'Champion' },
-      platinum: { threshold: 500, title: 'Legend' }
-    }
+      platinum: { threshold: 500, title: 'Legend' },
+    },
   },
   {
     id: 'perfect_games',
@@ -65,8 +66,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 1, title: 'Perfect Start' },
       silver: { threshold: 10, title: 'Untouchable' },
-      gold: { threshold: 25, title: 'Flawless Master' }
-    }
+      gold: { threshold: 25, title: 'Flawless Master' },
+    },
   },
   {
     id: 'comeback_wins',
@@ -77,8 +78,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 3, title: 'Never Give Up' },
       silver: { threshold: 15, title: 'Comeback Kid' },
-      gold: { threshold: 50, title: 'Phoenix Master' }
-    }
+      gold: { threshold: 50, title: 'Phoenix Master' },
+    },
   },
   {
     id: 'win_streak',
@@ -90,8 +91,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
       bronze: { threshold: 3, title: 'Hot Streak' },
       silver: { threshold: 10, title: 'Domination' },
       gold: { threshold: 20, title: 'Unstoppable Force' },
-      platinum: { threshold: 50, title: 'Legendary Streak' }
-    }
+      platinum: { threshold: 50, title: 'Legendary Streak' },
+    },
   },
 
   // === STRATEGY ACHIEVEMENTS ===
@@ -104,8 +105,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 8, title: 'Experimenter' },
       silver: { threshold: 13, title: 'Strategist' },
-      gold: { threshold: 17, title: 'Chip Master' } // All chip types
-    }
+      gold: { threshold: 17, title: 'Chip Master' }, // All chip types
+    },
   },
   {
     id: 'perfect_draws',
@@ -116,8 +117,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Lucky Shot' },
       silver: { threshold: 25, title: 'Sharp Shooter' },
-      gold: { threshold: 100, title: 'Perfect Marksman' }
-    }
+      gold: { threshold: 100, title: 'Perfect Marksman' },
+    },
   },
   {
     id: 'limit_manipulator',
@@ -128,8 +129,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'Rookie Bender' },
       silver: { threshold: 50, title: 'Rule Breaker' },
-      gold: { threshold: 200, title: 'Reality Warper' }
-    }
+      gold: { threshold: 200, title: 'Reality Warper' },
+    },
   },
   {
     id: 'shield_user',
@@ -140,8 +141,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'Defender' },
       silver: { threshold: 50, title: 'Protector' },
-      gold: { threshold: 150, title: 'Guardian Angel' }
-    }
+      gold: { threshold: 150, title: 'Guardian Angel' },
+    },
   },
   {
     id: 'aggressive_player',
@@ -152,8 +153,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'Aggressive' },
       silver: { threshold: 50, title: 'Ruthless' },
-      gold: { threshold: 150, title: 'Berserker Lord' }
-    }
+      gold: { threshold: 150, title: 'Berserker Lord' },
+    },
   },
 
   // === MASTERY ACHIEVEMENTS ===
@@ -166,8 +167,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Novice Magician' },
       silver: { threshold: 25, title: 'Card Trickster' },
-      gold: { threshold: 100, title: 'Master Illusionist' }
-    }
+      gold: { threshold: 100, title: 'Master Illusionist' },
+    },
   },
   {
     id: 'perfect_hands',
@@ -178,8 +179,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'Precise' },
       silver: { threshold: 50, title: 'Calculating' },
-      gold: { threshold: 200, title: 'Precision Master' }
-    }
+      gold: { threshold: 200, title: 'Precision Master' },
+    },
   },
   {
     id: 'low_limit_wins',
@@ -190,8 +191,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Conservative' },
       silver: { threshold: 25, title: 'Minimalist' },
-      gold: { threshold: 100, title: 'Constraint Master' }
-    }
+      gold: { threshold: 100, title: 'Constraint Master' },
+    },
   },
   {
     id: 'high_limit_wins',
@@ -202,8 +203,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Risk Taker' },
       silver: { threshold: 25, title: 'High Roller' },
-      gold: { threshold: 100, title: 'Maximum Risk' }
-    }
+      gold: { threshold: 100, title: 'Maximum Risk' },
+    },
   },
 
   // === LUCK ACHIEVEMENTS ===
@@ -216,8 +217,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 50, title: 'Lucky' },
       silver: { threshold: 250, title: 'Blessed' },
-      gold: { threshold: 1000, title: 'Fortune\'s Favorite' }
-    }
+      gold: { threshold: 1000, title: "Fortune's Favorite" },
+    },
   },
   {
     id: 'epic_hands',
@@ -228,8 +229,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'High Roller' },
       silver: { threshold: 50, title: 'Epic Player' },
-      gold: { threshold: 200, title: 'Legendary Hands' }
-    }
+      gold: { threshold: 200, title: 'Legendary Hands' },
+    },
   },
   {
     id: 'close_calls',
@@ -240,8 +241,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Close Call' },
       silver: { threshold: 25, title: 'Edge Walker' },
-      gold: { threshold: 100, title: 'Knife\'s Edge' }
-    }
+      gold: { threshold: 100, title: "Knife's Edge" },
+    },
   },
 
   // === ENDURANCE ACHIEVEMENTS ===
@@ -254,8 +255,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 60 * 60 * 1000, title: 'Hour Player' }, // 1 hour
       silver: { threshold: 10 * 60 * 60 * 1000, title: 'Marathon Runner' }, // 10 hours
-      gold: { threshold: 50 * 60 * 60 * 1000, title: 'Endurance Champion' } // 50 hours
-    }
+      gold: { threshold: 50 * 60 * 60 * 1000, title: 'Endurance Champion' }, // 50 hours
+    },
   },
   {
     id: 'game_count',
@@ -267,8 +268,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
       bronze: { threshold: 50, title: 'Regular' },
       silver: { threshold: 250, title: 'Veteran' },
       gold: { threshold: 1000, title: 'Master Veteran' },
-      platinum: { threshold: 5000, title: 'Dave Deck Legend' }
-    }
+      platinum: { threshold: 5000, title: 'Dave Deck Legend' },
+    },
   },
   {
     id: 'round_warrior',
@@ -279,8 +280,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 200, title: 'Fighter' },
       silver: { threshold: 1000, title: 'Warrior' },
-      gold: { threshold: 5000, title: 'Battle Master' }
-    }
+      gold: { threshold: 5000, title: 'Battle Master' },
+    },
   },
 
   // === SPECIAL ACHIEVEMENTS ===
@@ -293,8 +294,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Quick Win' }, // 5 fast games
       silver: { threshold: 25, title: 'Speed Demon' },
-      gold: { threshold: 100, title: 'Lightning Fast' }
-    }
+      gold: { threshold: 100, title: 'Lightning Fast' },
+    },
   },
   {
     id: 'turtle_master',
@@ -305,8 +306,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Patient' },
       silver: { threshold: 25, title: 'Methodical' },
-      gold: { threshold: 100, title: 'Zen Master' }
-    }
+      gold: { threshold: 100, title: 'Zen Master' },
+    },
   },
   {
     id: 'ai_nemesis',
@@ -317,8 +318,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'AI Hunter' },
       silver: { threshold: 50, title: 'AI Nemesis' },
-      gold: { threshold: 200, title: 'Machine Destroyer' }
-    }
+      gold: { threshold: 200, title: 'Machine Destroyer' },
+    },
   },
   {
     id: 'comeback_specialist',
@@ -329,8 +330,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 1, title: 'Survivor' },
       silver: { threshold: 10, title: 'Last Stand' },
-      gold: { threshold: 25, title: 'Miracle Worker' }
-    }
+      gold: { threshold: 25, title: 'Miracle Worker' },
+    },
   },
   {
     id: 'chip_hoarder',
@@ -341,8 +342,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 10, title: 'Saver' },
       silver: { threshold: 50, title: 'Collector' },
-      gold: { threshold: 200, title: 'Hoarder Supreme' }
-    }
+      gold: { threshold: 200, title: 'Hoarder Supreme' },
+    },
   },
   {
     id: 'all_chip_game',
@@ -353,8 +354,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 1, title: 'Arsenal User' },
       silver: { threshold: 5, title: 'Arsenal Expert' },
-      gold: { threshold: 20, title: 'Arsenal Master' }
-    }
+      gold: { threshold: 20, title: 'Arsenal Master' },
+    },
   },
   {
     id: 'multiplayer_victor',
@@ -365,8 +366,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 1, title: 'First Win' },
       silver: { threshold: 10, title: 'Rising Competitor' },
-      gold: { threshold: 50, title: 'Multiplayer Champion' }
-    }
+      gold: { threshold: 50, title: 'Multiplayer Champion' },
+    },
   },
   {
     id: 'multiplayer_streak',
@@ -377,8 +378,8 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 3, title: 'Hot Streak' },
       silver: { threshold: 5, title: 'Dominant' },
-      gold: { threshold: 10, title: 'Unstoppable' }
-    }
+      gold: { threshold: 10, title: 'Unstoppable' },
+    },
   },
   {
     id: 'social_gamer',
@@ -389,22 +390,22 @@ const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     tiers: {
       bronze: { threshold: 5, title: 'Social' },
       silver: { threshold: 15, title: 'Networker' },
-      gold: { threshold: 50, title: 'Community Champion' }
-    }
-  }
+      gold: { threshold: 50, title: 'Community Champion' },
+    },
+  },
 ]
 
 const STORAGE_KEY = 'dave-deck-achievements'
 
 function createDefaultAchievements(): Record<string, Achievement> {
   const achievements: Record<string, Achievement> = {}
-  
+
   for (const def of ACHIEVEMENT_DEFINITIONS) {
     // Create achievement entry for each tier
     for (const [tierName, tierInfo] of Object.entries(def.tiers)) {
       const tier = tierName as keyof typeof def.tiers
       const achievementId = `${def.id}_${tier}`
-      
+
       achievements[achievementId] = {
         id: achievementId,
         name: `${def.name}: ${tierInfo.title}`,
@@ -413,11 +414,11 @@ function createDefaultAchievements(): Record<string, Achievement> {
         icon: def.icon,
         progress: 0,
         maxProgress: tierInfo.threshold,
-        category: def.category
+        category: def.category,
       }
     }
   }
-  
+
   return achievements
 }
 
@@ -447,24 +448,20 @@ function saveAchievements(achievements: Record<string, Achievement>): void {
 export const useAchievementStore = defineStore('achievements', () => {
   const achievements = ref<Record<string, Achievement>>(loadAchievements())
   const recentUnlocks = ref<Achievement[]>([])
-  
+
   // Computed values
-  const unlockedAchievements = computed(() => 
+  const unlockedAchievements = computed(() =>
     Object.values(achievements.value).filter(a => a.unlockedAt)
   )
-  
-  const totalAchievements = computed(() => 
-    Object.keys(achievements.value).length
-  )
-  
-  const unlockedCount = computed(() => 
-    unlockedAchievements.value.length
-  )
-  
+
+  const totalAchievements = computed(() => Object.keys(achievements.value).length)
+
+  const unlockedCount = computed(() => unlockedAchievements.value.length)
+
   const completionPercentage = computed(() =>
     totalAchievements.value > 0 ? (unlockedCount.value / totalAchievements.value) * 100 : 0
   )
-  
+
   const achievementsByCategory = computed(() => {
     const categories: Record<string, Achievement[]> = {}
     for (const achievement of Object.values(achievements.value)) {
@@ -475,7 +472,7 @@ export const useAchievementStore = defineStore('achievements', () => {
     }
     return categories
   })
-  
+
   // Helper function to unlock achievement
   function unlockAchievement(achievementId: string): boolean {
     const achievement = achievements.value[achievementId]
@@ -488,29 +485,29 @@ export const useAchievementStore = defineStore('achievements', () => {
     }
     return false // Already unlocked or doesn't exist
   }
-  
+
   // Helper function to update progress
   function updateProgress(baseId: string, newValue: number): Achievement[] {
     const newlyUnlocked: Achievement[] = []
-    
+
     // Find the appropriate tier based on progress
     const definition = ACHIEVEMENT_DEFINITIONS.find(def => def.id === baseId)
     if (!definition) return newlyUnlocked
-    
+
     // Check each tier in order (bronze -> silver -> gold -> platinum)
     const tiers: (keyof typeof definition.tiers)[] = ['bronze', 'silver', 'gold']
     if (definition.tiers.platinum) tiers.push('platinum')
-    
+
     for (const tier of tiers) {
       const tierInfo = definition.tiers[tier]
       if (tierInfo) {
         const achievementId = `${baseId}_${tier}`
         const achievement = achievements.value[achievementId]
-        
+
         if (achievement) {
           // Always update progress, regardless of whether threshold is met
           achievement.progress = Math.min(newValue, achievement.maxProgress)
-          
+
           // Check if we should unlock this achievement
           if (achievement.progress >= achievement.maxProgress && !achievement.unlockedAt) {
             if (unlockAchievement(achievementId)) {
@@ -520,64 +517,78 @@ export const useAchievementStore = defineStore('achievements', () => {
         }
       }
     }
-    
+
     // Save achievements after updating progress
     saveAchievements(achievements.value)
     return newlyUnlocked
   }
-  
+
   // Specific tracking functions
-  function trackVictory(totalWins: number, perfectGame: boolean, comebackWin: boolean, currentStreak: number, totalPerfectGames: number, totalComebackWins: number): Achievement[] {
+  function trackVictory(
+    totalWins: number,
+    perfectGame: boolean,
+    comebackWin: boolean,
+    currentStreak: number,
+    totalPerfectGames: number,
+    totalComebackWins: number
+  ): Achievement[] {
     const newUnlocks: Achievement[] = []
-    
+
     // Update various victory-related achievements
     newUnlocks.push(...updateProgress('victories', totalWins))
-    
+
     if (perfectGame) {
       newUnlocks.push(...updateProgress('perfect_games', totalPerfectGames))
     }
-    
+
     if (comebackWin) {
       newUnlocks.push(...updateProgress('comeback_wins', totalComebackWins))
     }
-    
+
     newUnlocks.push(...updateProgress('win_streak', currentStreak))
-    
+
     saveAchievements(achievements.value)
     return newUnlocks
   }
-  
-  function trackChipUsage(chipKind: ChipKind, perfectDrawsUsed: number, limitManipulatorUsed: number, shieldUsed: number, aggressiveChipsUsed: number, cardSwapUsed: number): Achievement[] {
+
+  function trackChipUsage(
+    chipKind: ChipKind,
+    perfectDrawsUsed: number,
+    limitManipulatorUsed: number,
+    shieldUsed: number,
+    aggressiveChipsUsed: number,
+    cardSwapUsed: number
+  ): Achievement[] {
     const newUnlocks: Achievement[] = []
-    
+
     // Track specific chip type usage
     if (chipKind === ChipKind.PerfectDraw) {
       newUnlocks.push(...updateProgress('perfect_draws', perfectDrawsUsed))
     }
-    
+
     if ([ChipKind.Limit17, ChipKind.Limit24, ChipKind.Limit27].includes(chipKind)) {
       newUnlocks.push(...updateProgress('limit_manipulator', limitManipulatorUsed))
     }
-    
+
     if ([ChipKind.Shield, ChipKind.ShieldPlus].includes(chipKind)) {
       newUnlocks.push(...updateProgress('shield_user', shieldUsed))
     }
-    
+
     if ([ChipKind.StakePlus1, ChipKind.StakePlus2].includes(chipKind)) {
       newUnlocks.push(...updateProgress('aggressive_player', aggressiveChipsUsed))
     }
-    
+
     if (chipKind === ChipKind.SwapCards) {
       newUnlocks.push(...updateProgress('card_swapper', cardSwapUsed))
     }
-    
+
     saveAchievements(achievements.value)
     return newUnlocks
   }
-  
-  function trackGameStats(stats: { 
+
+  function trackGameStats(stats: {
     gamesPlayed: number
-    totalPlaytime: number 
+    totalPlaytime: number
     perfectHands: number
     gameDuration: number
     handValue: number
@@ -585,61 +596,81 @@ export const useAchievementStore = defineStore('achievements', () => {
     limit: number
   }): Achievement[] {
     const newUnlocks: Achievement[] = []
-    
+
     // Track endurance achievements
     newUnlocks.push(...updateProgress('game_count', stats.gamesPlayed))
     newUnlocks.push(...updateProgress('marathon_player', stats.totalPlaytime))
     newUnlocks.push(...updateProgress('perfect_hands', stats.perfectHands))
-    
+
     // Track special achievements based on game duration
-    if (stats.gameDuration < 2 * 60 * 1000) { // Less than 2 minutes = speed win
-      newUnlocks.push(...updateProgress('speed_demon', (achievements.value.speed_demon_bronze?.progress || 0) + 1))
+    if (stats.gameDuration < 2 * 60 * 1000) {
+      // Less than 2 minutes = speed win
+      newUnlocks.push(
+        ...updateProgress('speed_demon', (achievements.value.speed_demon_bronze?.progress || 0) + 1)
+      )
     }
-    
-    if (stats.gameDuration > 15 * 60 * 1000) { // More than 15 minutes = strategic win
-      newUnlocks.push(...updateProgress('turtle_master', (achievements.value.turtle_master_bronze?.progress || 0) + 1))
+
+    if (stats.gameDuration > 15 * 60 * 1000) {
+      // More than 15 minutes = strategic win
+      newUnlocks.push(
+        ...updateProgress(
+          'turtle_master',
+          (achievements.value.turtle_master_bronze?.progress || 0) + 1
+        )
+      )
     }
-    
+
     // Track epic hands (23+)
     if (stats.handValue >= 23) {
-      newUnlocks.push(...updateProgress('epic_hands', (achievements.value.epic_hands_bronze?.progress || 0) + 1))
+      newUnlocks.push(
+        ...updateProgress('epic_hands', (achievements.value.epic_hands_bronze?.progress || 0) + 1)
+      )
     }
-    
+
     // Track limit-specific wins
     if (stats.roundsWon > 0) {
       if (stats.limit === 17) {
-        newUnlocks.push(...updateProgress('low_limit_wins', (achievements.value.low_limit_wins_bronze?.progress || 0) + 1))
+        newUnlocks.push(
+          ...updateProgress(
+            'low_limit_wins',
+            (achievements.value.low_limit_wins_bronze?.progress || 0) + 1
+          )
+        )
       } else if (stats.limit === 27) {
-        newUnlocks.push(...updateProgress('high_limit_wins', (achievements.value.high_limit_wins_bronze?.progress || 0) + 1))
+        newUnlocks.push(
+          ...updateProgress(
+            'high_limit_wins',
+            (achievements.value.high_limit_wins_bronze?.progress || 0) + 1
+          )
+        )
       }
     }
-    
+
     saveAchievements(achievements.value)
     return newUnlocks
   }
-  
+
   function clearRecentUnlocks(): void {
     recentUnlocks.value = []
   }
-  
-  
+
   return {
     // State
     achievements,
     recentUnlocks,
-    
+
     // Computed
     unlockedAchievements,
     totalAchievements,
     unlockedCount,
     completionPercentage,
     achievementsByCategory,
-    
+
     // Actions
     trackVictory,
     trackChipUsage,
     trackGameStats,
     updateProgress,
-    clearRecentUnlocks
+    clearRecentUnlocks,
   }
 })

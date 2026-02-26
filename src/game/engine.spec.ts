@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  createInitialState,
-  hit,
-  skip,
-  startNewRound,
-} from './engine'
+import { createInitialState, hit, skip, startNewRound } from './engine'
 import { ChipKind } from './types'
 
 describe('engine', () => {
@@ -57,14 +52,14 @@ describe('engine', () => {
 
   it('skip: double skip transitions to round_result and provides roundResult', () => {
     // Start with initial state
-    let s = createInitialState()
-    
+    const s = createInitialState()
+
     // First player skips
     const { state: afterPlayerSkip } = skip(s, 'player')
     expect(afterPlayerSkip.phase).toBe('playing')
     expect(afterPlayerSkip.round.lastMoveWasSkip).toBe(true)
     expect(afterPlayerSkip.round.currentTurn).toBe('opponent')
-    
+
     // Opponent skips - should trigger round evaluation
     const { state: afterOpponentSkip, roundResult } = skip(afterPlayerSkip, 'opponent')
     expect(afterOpponentSkip.phase).toBe('round_result') // Critical: must be round_result
@@ -72,12 +67,12 @@ describe('engine', () => {
     expect(roundResult!.winner).toBeDefined()
     expect(afterOpponentSkip.player.hasHiddenCard).toBe(false)
     expect(afterOpponentSkip.opponent.hasHiddenCard).toBe(false)
-    
+
     // Verify that startNewRound can transition from round_result back to playing
     const playerChips = afterOpponentSkip.player.chips.map(c => ({ kind: c.kind, id: c.id }))
     const opponentChips = afterOpponentSkip.opponent.chips.map(c => ({ kind: c.kind, id: c.id }))
     const nextRound = startNewRound(afterOpponentSkip, { playerChips, opponentChips })
-    
+
     expect(nextRound.phase).toBe('playing') // Critical: must return to playing
     expect(nextRound.round.currentTurn).toBe('player')
     expect(nextRound.player.hasHiddenCard).toBe(true)

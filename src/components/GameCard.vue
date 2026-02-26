@@ -24,9 +24,9 @@ onMounted(() => {
   <div
     ref="cardElement"
     class="card"
-    :class="{ 
+    :class="{
       'card--hidden': hidden,
-      'card--animate': animate !== false
+      'card--animate': animate !== false,
     }"
   >
     <div class="card-content">
@@ -50,10 +50,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition: transform var(--transition-normal) ease-out, 
-              box-shadow var(--transition-normal) ease-out;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition:
+    transform var(--transition-normal) ease-out,
+    box-shadow var(--transition-normal) ease-out;
   will-change: transform;
   transform-origin: center center;
 }
@@ -75,11 +77,13 @@ onMounted(() => {
 .card-glow {
   position: absolute;
   inset: -2px;
-  background: linear-gradient(45deg, 
-    transparent 0%, 
-    rgba(233, 69, 96, 0.3) 25%, 
-    rgba(74, 222, 128, 0.3) 75%, 
-    transparent 100%);
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(233, 69, 96, 0.3) 25%,
+    rgba(74, 222, 128, 0.3) 75%,
+    transparent 100%
+  );
   border-radius: 10px;
   opacity: 0;
   z-index: 1;
@@ -98,14 +102,10 @@ onMounted(() => {
 /* Subtle hover effect - card stays on table */
 .card:hover {
   transform: scale(1.01);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.3),
-              0 0 8px rgba(233, 69, 96, 0.15);
-}
-
-.card--animated {
-  opacity: 1;
-  transform: translateY(0) rotate(0deg) scale(1);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 8px rgba(233, 69, 96, 0.15);
 }
 
 /* Card deal animation - from deck position to final position */

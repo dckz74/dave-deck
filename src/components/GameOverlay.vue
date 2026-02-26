@@ -8,12 +8,12 @@ const game = useGameStore()
 const multiplayer = useMultiplayerStore()
 const router = useRouter()
 
-const isRoundResultOrGameOver = computed(() =>
-  game.phase === 'game_over' || game.player.lives <= 0 || game.opponent.lives <= 0
+const isRoundResultOrGameOver = computed(
+  () => game.phase === 'game_over' || game.player.lives <= 0 || game.opponent.lives <= 0
 )
 
-const showGameOver = computed(() =>
-  game.phase === 'game_over' || game.player.lives <= 0 || game.opponent.lives <= 0
+const showGameOver = computed(
+  () => game.phase === 'game_over' || game.player.lives <= 0 || game.opponent.lives <= 0
 )
 
 const effectiveGameWinner = computed(() => {
@@ -25,12 +25,12 @@ const effectiveGameWinner = computed(() => {
   if (game.opponent.lives <= 0 && game.player.lives > 0) {
     return 'player'
   }
-  
+
   // If both players have same lives or other edge cases, fall back to gameWinner
   if (game.gameWinner) {
     return game.gameWinner
   }
-  
+
   return null
 })
 
@@ -46,7 +46,7 @@ watchEffect(() => {
         game.nextRound()
       }
     }, 5000)
-    
+
     // Clear timeout if phase changes
     return () => clearTimeout(timeoutId)
   }
@@ -86,10 +86,7 @@ function declineRematch() {
 <template>
   <Teleport to="body">
     <Transition name="overlay">
-      <div
-        v-if="isRoundResultOrGameOver"
-        class="overlay"
-      >
+      <div v-if="isRoundResultOrGameOver" class="overlay">
         <div class="modal">
           <template v-if="showGameOver">
             <div class="game-over-content">
@@ -97,19 +94,15 @@ function declineRematch() {
                 <div class="victory-rays" v-if="effectiveGameWinner === 'player'"></div>
                 <div class="defeat-shadow" v-else></div>
               </div>
-              
+
               <div class="game-over-icon">
                 <span v-if="effectiveGameWinner === 'player'">🏆</span>
                 <span v-else>😔</span>
               </div>
-              
-              <h1 class="game-over-title" v-if="effectiveGameWinner === 'player'">
-                Sieg!
-              </h1>
-              <h1 class="game-over-title game-over-title--defeat" v-else>
-                Niederlage
-              </h1>
-              
+
+              <h1 class="game-over-title" v-if="effectiveGameWinner === 'player'">Sieg!</h1>
+              <h1 class="game-over-title game-over-title--defeat" v-else>Niederlage</h1>
+
               <div class="game-over-subtitle">
                 <p v-if="effectiveGameWinner === 'player'" class="result result--win">
                   🎉 Glückwunsch! Du hast den Gegner besiegt!
@@ -118,7 +111,7 @@ function declineRematch() {
                   💪 Versuche es erneut und zeig dem Gegner, wer der Boss ist!
                 </p>
               </div>
-              
+
               <div class="game-stats">
                 <div class="stat-item">
                   <span class="stat-label">Dein Leben:</span>
@@ -129,7 +122,7 @@ function declineRematch() {
                   <span class="stat-value">{{ game.opponent.lives }} ❤️</span>
                 </div>
               </div>
-              
+
               <div class="game-over-actions">
                 <!-- Multiplayer rematch logic -->
                 <template v-if="game.gameMode === 'multiplayer'">
@@ -138,10 +131,18 @@ function declineRematch() {
                     <div class="rematch-request">
                       <p>{{ multiplayer.rematchFrom }} möchte eine Revanche!</p>
                       <div class="rematch-buttons">
-                        <button type="button" class="btn btn-success btn-large" @click="acceptRematch">
+                        <button
+                          type="button"
+                          class="btn btn-success btn-large"
+                          @click="acceptRematch"
+                        >
                           <span>✅ Akzeptieren</span>
                         </button>
-                        <button type="button" class="btn btn-danger btn-large" @click="declineRematch">
+                        <button
+                          type="button"
+                          class="btn btn-danger btn-large"
+                          @click="declineRematch"
+                        >
                           <span>❌ Ablehnen</span>
                         </button>
                       </div>
@@ -149,7 +150,12 @@ function declineRematch() {
                   </template>
                   <!-- Show normal buttons if no rematch request pending -->
                   <template v-else>
-                    <button type="button" class="btn btn-secondary btn-large" @click="rematch" :disabled="multiplayer.rematchRequested">
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-large"
+                      @click="rematch"
+                      :disabled="multiplayer.rematchRequested"
+                    >
                       <span v-if="multiplayer.rematchRequested">⏳ Warte auf Antwort...</span>
                       <span v-else>🔄 Rematch</span>
                     </button>
@@ -194,7 +200,9 @@ function declineRematch() {
   padding: 2.5rem;
   max-width: 480px;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
@@ -481,7 +489,11 @@ function declineRematch() {
 }
 
 @keyframes celebration-bounce {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0) scale(1);
   }
   40% {
@@ -537,7 +549,8 @@ function declineRematch() {
 }
 
 @keyframes win-halo {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {
@@ -547,7 +560,8 @@ function declineRematch() {
 
 /* New enhanced animations */
 @keyframes victory-rays-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(1);
   }
@@ -558,7 +572,8 @@ function declineRematch() {
 }
 
 @keyframes defeat-shadow-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.2;
   }
   50% {

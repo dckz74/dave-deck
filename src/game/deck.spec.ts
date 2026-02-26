@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  createDeck,
-  drawFromDeck,
-  drawCardByValue,
-  getBestCardValue,
-} from './deck'
+import { createDeck, drawFromDeck, drawCardByValue, getBestCardValue } from './deck'
 
 describe('deck', () => {
   beforeEach(() => {
@@ -14,7 +9,7 @@ describe('deck', () => {
   it('createDeck returns 11 cards with values 1-11', () => {
     const deck = createDeck(false)
     expect(deck).toHaveLength(11)
-    const values = deck.map((c) => c.value).sort((a, b) => a - b)
+    const values = deck.map(c => c.value).sort((a, b) => a - b)
     expect(values).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
   })
 
@@ -31,7 +26,7 @@ describe('deck', () => {
     const card = drawCardByValue(deck, 7)
     expect(card?.value).toBe(7)
     expect(deck).toHaveLength(10)
-    expect(deck.every((c) => c.value !== 7)).toBe(true)
+    expect(deck.every(c => c.value !== 7)).toBe(true)
   })
 
   it('drawCardByValue returns undefined if value not in deck', () => {

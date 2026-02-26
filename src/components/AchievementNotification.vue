@@ -7,7 +7,7 @@
         :class="[
           'achievement-notification',
           `achievement-notification--${achievement.tier}`,
-          `achievement-notification--${achievement.category}`
+          `achievement-notification--${achievement.category}`,
         ]"
         @click="dismissAchievement(achievement)"
       >
@@ -19,11 +19,9 @@
             {{ achievement.tier.toUpperCase() }}
           </div>
         </div>
-        
+
         <div class="achievement-notification__content">
-          <h3 class="achievement-notification__title">
-            Achievement Unlocked!
-          </h3>
+          <h3 class="achievement-notification__title">Achievement Unlocked!</h3>
           <h4 class="achievement-notification__name">
             {{ achievement.name }}
           </h4>
@@ -49,7 +47,7 @@ const DISPLAY_DURATION = 6000 // 6 seconds
 
 function showAchievement(achievement: Achievement) {
   visibleAchievements.value.push(achievement)
-  
+
   // Auto-dismiss after delay
   setTimeout(() => {
     dismissAchievement(achievement)
@@ -66,14 +64,14 @@ function dismissAchievement(achievement: Achievement) {
 // Watch for new achievements
 watch(
   () => achievementStore.recentUnlocks,
-  (newUnlocks) => {
+  newUnlocks => {
     for (const achievement of newUnlocks) {
       // Only show if not already visible
       if (!visibleAchievements.value.find(a => a.id === achievement.id)) {
         showAchievement(achievement)
       }
     }
-    
+
     // Clear the recent unlocks after processing
     if (newUnlocks.length > 0) {
       achievementStore.clearRecentUnlocks()
@@ -89,42 +87,49 @@ function playUnlockSound(tier: string) {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     const oscillator = audioContext.createOscillator()
     const gainNode = audioContext.createGain()
-    
+
     oscillator.connect(gainNode)
     gainNode.connect(audioContext.destination)
-    
+
     // Different tones for different tiers
     const frequencies = {
       bronze: 440, // A4
       silver: 554, // C#5
-      gold: 659,   // E5
-      platinum: 880 // A5
+      gold: 659, // E5
+      platinum: 880, // A5
     }
-    
-    oscillator.frequency.setValueAtTime(frequencies[tier as keyof typeof frequencies] || 440, audioContext.currentTime)
+
+    oscillator.frequency.setValueAtTime(
+      frequencies[tier as keyof typeof frequencies] || 440,
+      audioContext.currentTime
+    )
     oscillator.type = 'triangle'
-    
+
     gainNode.gain.setValueAtTime(0, audioContext.currentTime)
     gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1)
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5)
-    
+
     oscillator.start(audioContext.currentTime)
     oscillator.stop(audioContext.currentTime + 0.5)
-  } catch (error) {
+  } catch {
     // Audio not available, continue silently
   }
 }
 
 // Play sound when achievements appear
-watch(visibleAchievements, (newAchievements, oldAchievements) => {
-  const newCount = newAchievements.length
-  const oldCount = oldAchievements?.length || 0
-  
-  if (newCount > oldCount) {
-    const newAchievement = newAchievements[newCount - 1]
-    playUnlockSound(newAchievement.tier)
-  }
-}, { deep: true })
+watch(
+  visibleAchievements,
+  (newAchievements, oldAchievements) => {
+    const newCount = newAchievements.length
+    const oldCount = oldAchievements?.length || 0
+
+    if (newCount > oldCount) {
+      const newAchievement = newAchievements[newCount - 1]
+      playUnlockSound(newAchievement.tier)
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>
@@ -163,8 +168,13 @@ watch(visibleAchievements, (newAchievements, oldAchievements) => {
 }
 
 @keyframes achievement-glow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Tier-specific colors */
@@ -301,7 +311,7 @@ watch(visibleAchievements, (newAchievements, oldAchievements) => {
     right: 10px;
     left: 10px;
   }
-  
+
   .achievement-notification {
     width: auto;
     margin-bottom: 10px;

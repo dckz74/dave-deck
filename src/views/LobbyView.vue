@@ -16,16 +16,18 @@ const nameInput = ref<HTMLInputElement>()
 
 const playerStatus = computed(() => {
   if (!multiplayer.currentSession) return 'No session'
-  
+
   if (multiplayer.currentSession.playerCount === 1) {
-    return multiplayer.currentSession.isHost ? 'Waiting for player to join...' : 'Joining session...'
+    return multiplayer.currentSession.isHost
+      ? 'Waiting for player to join...'
+      : 'Joining session...'
   } else {
     return 'Ready to play!'
   }
 })
 
-const canStartGame = computed(() => 
-  multiplayer.canStartGame && multiplayer.currentSession?.playerCount === 2
+const canStartGame = computed(
+  () => multiplayer.canStartGame && multiplayer.currentSession?.playerCount === 2
 )
 
 const inviteUrl = computed(() => multiplayer.sessionInviteUrl)
@@ -38,12 +40,12 @@ onMounted(() => {
     router.push('/')
     return
   }
-  
+
   // Setup multiplayer listeners
   game.setupMultiplayerListeners()
-  
+
   // Listen for game start event
-  multiplayer.onGameStateUpdate((_data) => {
+  multiplayer.onGameStateUpdate(_data => {
     // This will handle game state updates during the game
   })
 })
@@ -51,7 +53,7 @@ onMounted(() => {
 // Watch for session status changes to handle game start
 watch(
   () => multiplayer.sessionStatus,
-  (newStatus) => {
+  newStatus => {
     if (newStatus === 'playing') {
       // Game has started, navigate to game view
       console.log('🎮 Game started, navigating to game view...')
@@ -63,25 +65,28 @@ watch(
 
 function copyInviteLink() {
   if (inviteUrl.value) {
-    navigator.clipboard.writeText(inviteUrl.value).then(() => {
-      copiedInvite.value = true
-      setTimeout(() => {
-        copiedInvite.value = false
-      }, 2000)
-    }).catch(() => {
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea')
-      textarea.value = inviteUrl.value!
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      
-      copiedInvite.value = true
-      setTimeout(() => {
-        copiedInvite.value = false
-      }, 2000)
-    })
+    navigator.clipboard
+      .writeText(inviteUrl.value)
+      .then(() => {
+        copiedInvite.value = true
+        setTimeout(() => {
+          copiedInvite.value = false
+        }, 2000)
+      })
+      .catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea')
+        textarea.value = inviteUrl.value!
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+
+        copiedInvite.value = true
+        setTimeout(() => {
+          copiedInvite.value = false
+        }, 2000)
+      })
   }
 }
 
@@ -142,9 +147,7 @@ onUnmounted(() => {
       <header class="lobby-header">
         <h1>Game Lobby</h1>
         <div class="session-info">
-          <span class="session-code" @click="copySessionCode">
-            Session: {{ sessionCode }}
-          </span>
+          <span class="session-code" @click="copySessionCode"> Session: {{ sessionCode }} </span>
         </div>
       </header>
 
@@ -152,9 +155,13 @@ onUnmounted(() => {
       <div class="connection-status" :class="`status-${multiplayer.connectionStatus}`">
         <span class="status-indicator"></span>
         <span class="status-text">
-          {{ multiplayer.connectionStatus === 'connected' ? 'Connected' : 
-             multiplayer.connectionStatus === 'connecting' ? 'Connecting...' :
-             'Connection Issue' }}
+          {{
+            multiplayer.connectionStatus === 'connected'
+              ? 'Connected'
+              : multiplayer.connectionStatus === 'connecting'
+                ? 'Connecting...'
+                : 'Connection Issue'
+          }}
         </span>
       </div>
 
@@ -170,7 +177,10 @@ onUnmounted(() => {
 
         <!-- Player indicators -->
         <div class="player-indicators">
-          <div class="player-slot" :class="{ active: true, host: multiplayer.currentSession?.myPlayer?.isHost }">
+          <div
+            class="player-slot"
+            :class="{ active: true, host: multiplayer.currentSession?.myPlayer?.isHost }"
+          >
             <div class="player-avatar">
               {{ multiplayer.currentSession?.myPlayer?.isHost ? '👑' : '🎮' }}
             </div>
@@ -178,47 +188,55 @@ onUnmounted(() => {
               <span class="player-name">
                 {{ multiplayer.currentSession?.myPlayer?.name || 'You' }}
               </span>
-              <button @click="startEditingName" class="edit-name-btn" title="Edit name">
-                ✏️
-              </button>
+              <button @click="startEditingName" class="edit-name-btn" title="Edit name">✏️</button>
             </div>
             <div v-else class="player-name-edit">
-              <input 
-                v-model="newPlayerName" 
+              <input
+                v-model="newPlayerName"
                 @keyup.enter="savePlayerName"
                 @keyup.escape="cancelEditingName"
                 class="name-input"
                 placeholder="Enter your name"
                 maxlength="20"
                 ref="nameInput"
-              >
+              />
               <button @click="savePlayerName" class="save-btn" title="Save">✓</button>
               <button @click="cancelEditingName" class="cancel-btn" title="Cancel">✗</button>
             </div>
             <span v-if="multiplayer.currentSession?.myPlayer?.isHost" class="host-badge">Host</span>
           </div>
 
-          <div class="player-slot" :class="{ active: (multiplayer.currentSession?.playerCount || 0) >= 2 }">
+          <div
+            class="player-slot"
+            :class="{ active: (multiplayer.currentSession?.playerCount || 0) >= 2 }"
+          >
             <div class="player-avatar">
               {{ (multiplayer.currentSession?.playerCount || 0) >= 2 ? '🎯' : '⏳' }}
             </div>
             <span class="player-name">
-              {{ multiplayer.currentSession?.opponentPlayer?.name || 
-                 ((multiplayer.currentSession?.playerCount || 0) >= 2 ? 'Opponent' : 'Waiting...') }}
+              {{
+                multiplayer.currentSession?.opponentPlayer?.name ||
+                ((multiplayer.currentSession?.playerCount || 0) >= 2 ? 'Opponent' : 'Waiting...')
+              }}
             </span>
           </div>
         </div>
       </div>
 
       <!-- Invite Section -->
-      <div v-if="multiplayer.currentSession?.isHost && (multiplayer.currentSession?.playerCount || 0) < 2" class="invite-section">
+      <div
+        v-if="
+          multiplayer.currentSession?.isHost && (multiplayer.currentSession?.playerCount || 0) < 2
+        "
+        class="invite-section"
+      >
         <h3>Invite a Friend</h3>
-        
+
         <div class="invite-options">
           <!-- Quick Share -->
           <div class="invite-quick">
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="btn btn-primary invite-btn"
               @click="copyInviteLink"
               :disabled="!inviteUrl"
@@ -228,11 +246,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Show Details Toggle -->
-          <button 
-            type="button" 
-            class="btn btn-ghost details-toggle"
-            @click="toggleInviteDetails"
-          >
+          <button type="button" class="btn btn-ghost details-toggle" @click="toggleInviteDetails">
             {{ showInviteDetails ? 'Hide Details' : 'Show More Options' }}
           </button>
 
@@ -249,12 +263,12 @@ onUnmounted(() => {
             <div class="detail-item">
               <label>Full Invite Link:</label>
               <div class="url-display">
-                <input 
-                  :value="inviteUrl" 
-                  readonly 
+                <input
+                  :value="inviteUrl"
+                  readonly
                   class="url-input"
                   @focus="($event.target as HTMLInputElement)?.select()"
-                >
+                />
               </div>
             </div>
           </div>
@@ -263,24 +277,26 @@ onUnmounted(() => {
 
       <!-- Game Actions -->
       <div class="game-actions">
-        <button 
+        <button
           v-if="canStartGame"
-          type="button" 
+          type="button"
           class="btn btn-primary btn-large start-btn"
           @click="startGame"
         >
           🎮 Start Game
         </button>
-        
-        <div v-else-if="!multiplayer.currentSession?.isHost && (multiplayer.currentSession?.playerCount || 0) >= 2" class="waiting-message">
+
+        <div
+          v-else-if="
+            !multiplayer.currentSession?.isHost &&
+            (multiplayer.currentSession?.playerCount || 0) >= 2
+          "
+          class="waiting-message"
+        >
           <p>Waiting for host to start the game...</p>
         </div>
 
-        <button 
-          type="button" 
-          class="btn btn-secondary leave-btn"
-          @click="leaveLobby"
-        >
+        <button type="button" class="btn btn-secondary leave-btn" @click="leaveLobby">
           ← Leave Lobby
         </button>
       </div>
@@ -377,8 +393,13 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Player Status */
@@ -494,7 +515,8 @@ onUnmounted(() => {
   border-color: var(--color-accent);
 }
 
-.save-btn, .cancel-btn {
+.save-btn,
+.cancel-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -663,7 +685,10 @@ onUnmounted(() => {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    filter var(--transition-fast);
 }
 
 .btn:disabled {
@@ -734,30 +759,30 @@ onUnmounted(() => {
   .lobby {
     padding: 1rem;
   }
-  
+
   .lobby-container {
     padding: 1.5rem;
   }
-  
+
   .player-indicators {
     flex-direction: column;
   }
-  
+
   .player-slot {
     flex-direction: row;
     text-align: left;
     justify-content: flex-start;
     gap: 1rem;
   }
-  
+
   .player-avatar {
     margin-bottom: 0;
   }
-  
+
   .invite-details {
     gap: 0.75rem;
   }
-  
+
   .url-input {
     font-size: 0.8rem;
   }

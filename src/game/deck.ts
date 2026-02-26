@@ -13,7 +13,7 @@ function nextCardId(): string {
 
 /** Erstellt ein frisches Deck (11 Karten 1–11), optional gemischt. */
 export function createDeck(shuffle = true): Card[] {
-  const deck: Card[] = CARD_VALUES.map((value) => ({ value, id: nextCardId() }))
+  const deck: Card[] = CARD_VALUES.map(value => ({ value, id: nextCardId() }))
   if (shuffle) shuffleDeck(deck)
   return deck
 }
@@ -33,7 +33,7 @@ export function drawFromDeck(deck: Card[]): Card | undefined {
 
 /** Sucht eine Karte mit value im Deck, entfernt sie und gibt sie zurück. */
 export function drawCardByValue(deck: Card[], value: CardValue): Card | undefined {
-  const idx = deck.findIndex((c) => c.value === value)
+  const idx = deck.findIndex(c => c.value === value)
   if (idx === -1) return undefined
   const [card] = deck.splice(idx, 1)
   return card

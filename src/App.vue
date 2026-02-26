@@ -9,7 +9,7 @@ import AchievementNotification from '@/components/AchievementNotification.vue'
         <component :is="Component" />
       </transition>
     </RouterView>
-    
+
     <!-- Global Achievement Notifications -->
     <AchievementNotification />
   </div>

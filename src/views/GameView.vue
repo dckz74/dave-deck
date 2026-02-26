@@ -24,17 +24,17 @@ const connectionStatus = computed(() => {
   return {
     status: multiplayer.connectionStatus,
     isConnected: multiplayer.isConnected,
-    sessionActive: multiplayer.isInSession
+    sessionActive: multiplayer.isInSession,
   }
 })
 
 const gameOverOptions = computed(() => {
   if (!game.isMultiplayer || game.phase !== 'game_over') return null
-  
+
   return {
     canRematch: multiplayer.isInSession,
     rematchRequested: multiplayer.rematchRequested,
-    rematchFrom: multiplayer.rematchFrom
+    rematchFrom: multiplayer.rematchFrom,
   }
 })
 
@@ -51,7 +51,7 @@ function endGame() {
     multiplayer.leaveSession()
     game.setGameMode('single-player')
   }
-  
+
   game.resetGame()
   router.push('/')
 }
@@ -82,7 +82,7 @@ watch(
   ({ turn, phase, isMultiplayer }) => {
     // Skip AI logic in multiplayer mode
     if (isMultiplayer || phase !== 'playing' || turn) return
-    
+
     if (aiTimeout.value) clearTimeout(aiTimeout.value)
     aiTimeout.value = setTimeout(() => {
       game.runOpponentTurn()
@@ -95,7 +95,7 @@ watch(
 // Handle rematch requests
 watch(
   () => multiplayer.rematchRequested,
-  (requested) => {
+  requested => {
     if (requested && multiplayer.rematchFrom) {
       showRematchDialog.value = true
     }
@@ -107,7 +107,11 @@ watch(
   <div class="game-view">
     <header class="game-header">
       <!-- Connection Status (Multiplayer only) -->
-      <div v-if="connectionStatus" class="connection-indicator" :class="`status-${connectionStatus.status}`">
+      <div
+        v-if="connectionStatus"
+        class="connection-indicator"
+        :class="`status-${connectionStatus.status}`"
+      >
         <span class="status-dot"></span>
         <span class="status-text">
           {{ connectionStatus.isConnected ? 'Connected' : 'Connection Issue' }}
@@ -118,12 +122,12 @@ watch(
       <div class="game-mode-indicator">
         {{ game.isMultiplayer ? '👥 Multiplayer' : '🎯 Solo' }}
       </div>
-      
+
       <button type="button" class="btn-end" :aria-label="endGameText" @click="endGame">
         {{ endGameText }}
       </button>
     </header>
-    
+
     <GameTable />
     <GameOverlay />
 
@@ -146,16 +150,16 @@ watch(
     <!-- Game Over Options (Multiplayer) -->
     <div v-if="gameOverOptions && game.phase === 'game_over'" class="game-over-multiplayer">
       <div class="multiplayer-options">
-        <button 
-          v-if="!gameOverOptions.rematchRequested" 
-          type="button" 
+        <button
+          v-if="!gameOverOptions.rematchRequested"
+          type="button"
           class="btn btn-primary"
           @click="requestRematch"
           :disabled="!gameOverOptions.canRematch"
         >
           🔄 Request Rematch
         </button>
-        
+
         <div v-else class="rematch-pending">
           <p>Rematch requested... waiting for opponent</p>
         </div>
@@ -220,7 +224,8 @@ watch(
   animation: pulse 2s infinite;
 }
 
-.status-error, .status-disconnected {
+.status-error,
+.status-disconnected {
   background: rgba(239, 68, 68, 0.1);
   color: rgb(239, 68, 68);
 }
@@ -231,8 +236,13 @@ watch(
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Game Mode Indicator */
@@ -253,7 +263,9 @@ watch(
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .btn-end:hover {
@@ -340,7 +352,10 @@ watch(
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    filter var(--transition-fast);
 }
 
 .btn:disabled {
@@ -385,34 +400,34 @@ watch(
     gap: 0.5rem;
     flex-wrap: wrap;
   }
-  
-  .connection-indicator, 
+
+  .connection-indicator,
   .game-mode-indicator {
     font-size: 0.75rem;
     padding: 0.375rem 0.5rem;
   }
-  
+
   .btn-end {
     font-size: 0.8rem;
     padding: 0.375rem 0.75rem;
   }
-  
+
   .rematch-dialog {
     padding: 1.5rem;
     margin: 1rem;
   }
-  
+
   .rematch-actions {
     flex-direction: column;
   }
-  
+
   .game-over-multiplayer {
     bottom: 1rem;
     left: 1rem;
     right: 1rem;
     transform: none;
   }
-  
+
   .multiplayer-options {
     padding: 0.75rem 1rem;
   }

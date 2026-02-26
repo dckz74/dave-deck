@@ -34,7 +34,10 @@
       "Bash(kill -9 69958)",
       "Bash(npm install redis)",
       "Bash(chmod +x /Users/david_lotum/projects/dave-deck/scripts/setup-dev.sh)",
-      "Bash(VITE_WEBSOCKET_URL=https://example.com npm run build)"
+      "Bash(VITE_WEBSOCKET_URL=https://example.com npm run build)",
+      "Bash(npm install -D eslint @eslint/js @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-vue vue-eslint-parser)",
+      "Bash(npm install -D prettier eslint-config-prettier eslint-plugin-prettier)",
+      "Bash(npm run lint:fix)"
     ],
     "deny": [],
     "ask": []

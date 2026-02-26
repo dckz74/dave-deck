@@ -9,7 +9,12 @@ const routes: RouteRecordRaw[] = [
   { path: '/', name: 'home', component: Home, meta: { title: 'Dave Deck' } },
   { path: '/lobby', name: 'lobby', component: Lobby, meta: { title: 'Lobby – Dave Deck' } },
   { path: '/game', name: 'game', component: Game, meta: { title: 'Spiel – Dave Deck' } },
-  { path: '/statistics', name: 'statistics', component: Statistics, meta: { title: 'Statistiken – Dave Deck' } },
+  {
+    path: '/statistics',
+    name: 'statistics',
+    component: Statistics,
+    meta: { title: 'Statistiken – Dave Deck' },
+  },
 ]
 
 const router = createRouter({
@@ -17,7 +22,7 @@ const router = createRouter({
   routes,
 })
 
-router.afterEach((to) => {
+router.afterEach(to => {
   const title = to.meta?.title as string | undefined
   if (title) document.title = title
 })

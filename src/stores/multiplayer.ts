@@ -46,10 +46,11 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   // Computed properties
   const isConnected = computed(() => connectionStatus.value === 'connected')
   const isInSession = computed(() => currentSession.value !== null)
-  const canStartGame = computed(() => 
-    currentSession.value?.isHost && 
-    currentSession.value?.canStart && 
-    sessionStatus.value === 'waiting'
+  const canStartGame = computed(
+    () =>
+      currentSession.value?.isHost &&
+      currentSession.value?.canStart &&
+      sessionStatus.value === 'waiting'
   )
   const sessionInviteUrl = computed(() => {
     if (!currentSession.value) return null
@@ -93,7 +94,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
       })
 
       // Connection error
-      socket.value.on('connect_error', (error) => {
+      socket.value.on('connect_error', error => {
         console.error('❌ Connection error:', error)
         connectionStatus.value = 'error'
         lastError.value = `Connection failed: ${error.message}`
@@ -101,7 +102,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
       })
 
       // Disconnection
-      socket.value.on('disconnect', (reason) => {
+      socket.value.on('disconnect', reason => {
         console.log('🔌 Disconnected from server:', reason)
         connectionStatus.value = 'disconnected'
         if (reason !== 'io client disconnect') {
@@ -116,13 +117,13 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
       })
 
       // Auto-reconnection handling
-      socket.value.on('reconnect', (attemptNumber) => {
+      socket.value.on('reconnect', attemptNumber => {
         console.log('✅ Reconnected to server after', attemptNumber, 'attempts')
         connectionStatus.value = 'connected'
         lastError.value = null
       })
 
-      socket.value.on('reconnect_error', (error) => {
+      socket.value.on('reconnect_error', error => {
         console.error('❌ Reconnection failed:', error)
       })
 
@@ -164,21 +165,21 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     await ensureConnection()
 
     sessionStatus.value = 'creating'
-    
+
     return new Promise((resolve, reject) => {
       socket.value!.emit('create-session', { playerName })
-      
+
       const timeout = setTimeout(() => {
         sessionStatus.value = 'idle'
         reject(new Error('Session creation timeout'))
       }, 5000)
 
-      socket.value!.once('session-created', (data) => {
+      socket.value!.once('session-created', data => {
         clearTimeout(timeout)
         const players = data.players || []
         const myPlayer = players.find((p: Player) => p.id === socket.value!.id)
         const opponentPlayer = players.find((p: Player) => p.id !== socket.value!.id)
-        
+
         currentSession.value = {
           id: data.sessionId,
           isHost: data.isHost,
@@ -186,7 +187,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
           canStart: false,
           players,
           myPlayer,
-          opponentPlayer
+          opponentPlayer,
         }
         sessionStatus.value = 'waiting'
         resolve()
@@ -211,12 +212,12 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
         reject(new Error('Join session timeout'))
       }, 5000)
 
-      socket.value!.once('session-joined', (data) => {
+      socket.value!.once('session-joined', data => {
         clearTimeout(timeout)
         const players = data.players || []
         const myPlayer = players.find((p: Player) => p.id === socket.value!.id)
         const opponentPlayer = players.find((p: Player) => p.id !== socket.value!.id)
-        
+
         currentSession.value = {
           id: data.sessionId,
           isHost: data.isHost,
@@ -224,13 +225,13 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
           canStart: players.length === 2,
           players,
           myPlayer,
-          opponentPlayer
+          opponentPlayer,
         }
         sessionStatus.value = 'waiting'
         resolve()
       })
 
-      socket.value!.once('join-failed', (data) => {
+      socket.value!.once('join-failed', data => {
         clearTimeout(timeout)
         sessionStatus.value = 'idle'
         lastError.value = data.error
@@ -262,7 +263,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     socket.value.emit('game-action', {
       action: action.type,
       data: action.data,
-      gameState: action.gameState
+      gameState: action.gameState,
     })
   }
 
@@ -330,15 +331,22 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     if (!socket.value) return
 
     // Player list updated
-    socket.value.on('player-list-updated', (data) => {
+    socket.value.on('player-list-updated', data => {
       console.log('👥 Player list updated:', data)
       if (currentSession.value) {
         const players = data.players || []
         const myPlayer = players.find((p: Player) => p.id === socket.value!.id)
         const opponentPlayer = players.find((p: Player) => p.id !== socket.value!.id)
-        
-        console.log('🎮 Updating session state - players:', players.length, 'myPlayer:', myPlayer?.name, 'opponent:', opponentPlayer?.name)
-        
+
+        console.log(
+          '🎮 Updating session state - players:',
+          players.length,
+          'myPlayer:',
+          myPlayer?.name,
+          'opponent:',
+          opponentPlayer?.name
+        )
+
         // Force reactive update by replacing the entire session object
         currentSession.value = {
           ...currentSession.value,
@@ -346,27 +354,30 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
           playerCount: players.length,
           canStart: data.canStart,
           myPlayer,
-          opponentPlayer
+          opponentPlayer,
         }
       }
     })
 
     // Legacy support for old player-joined event - more robust
-    socket.value.on('player-joined', (data) => {
+    socket.value.on('player-joined', data => {
       console.log('📨 Legacy player-joined event received:', data)
       if (currentSession.value) {
         // Force update to 2 players
         currentSession.value = {
           ...currentSession.value,
           playerCount: 2,
-          canStart: data.canStart || true
+          canStart: data.canStart || true,
         }
-        console.log('🔄 Updated session via legacy event - playerCount:', currentSession.value.playerCount)
+        console.log(
+          '🔄 Updated session via legacy event - playerCount:',
+          currentSession.value.playerCount
+        )
       }
     })
 
     // Player disconnected
-    socket.value.on('player-disconnected', (_data) => {
+    socket.value.on('player-disconnected', _data => {
       if (currentSession.value) {
         // If we were in a finished game state, end the session completely
         if (sessionStatus.value === 'finished') {
@@ -386,7 +397,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     })
 
     // Rematch events
-    socket.value.on('rematch-requested', (data) => {
+    socket.value.on('rematch-requested', data => {
       rematchRequested.value = true
       rematchFrom.value = data.from
     })
@@ -405,9 +416,8 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
       sessionStatus.value = 'idle'
     })
 
-
     // Error handling
-    socket.value.on('error', (data) => {
+    socket.value.on('error', data => {
       lastError.value = data.message
     })
   }
@@ -419,23 +429,23 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     if (!socket.value) return
 
     // Game started
-    socket.value.on('game-started', (data) => {
+    socket.value.on('game-started', data => {
       console.log('🎮 Received game-started event:', data)
       sessionStatus.value = 'playing'
       console.log('📍 Session status updated to:', sessionStatus.value)
-      
+
       // IMPORTANT: Update the game state with server's corrected state
       // This ensures both clients have synchronized starting turns
       // We'll emit this as a special game state update that the game store can catch
     })
 
     // Game ended
-    socket.value.on('game-ended', (_data) => {
+    socket.value.on('game-ended', _data => {
       sessionStatus.value = 'finished'
     })
 
     // Enhanced error handling for game actions
-    socket.value.on('error', (error) => {
+    socket.value.on('error', error => {
       console.warn('🚫 Server rejected action:', error.message)
       // Show brief error feedback (will be handled by UI if needed)
     })
@@ -444,7 +454,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Get event emitter for game state updates
    */
-  function onGameStateUpdate(callback: (data: any) => void): void {
+  function onGameStateUpdate(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.on('game-state-update', callback)
   }
@@ -452,7 +462,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Remove game state update listener
    */
-  function offGameStateUpdate(callback: (data: any) => void): void {
+  function offGameStateUpdate(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.off('game-state-update', callback)
   }
@@ -460,21 +470,21 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Trigger a round transition (server-authoritative)
    */
-  function triggerRoundTransition(newGameState: GameState, roundResult: any): void {
+  function triggerRoundTransition(newGameState: GameState, _roundResult: any): void {
     if (!socket.value?.connected || sessionStatus.value !== 'playing') {
       throw new Error('Cannot trigger round transition')
     }
 
     socket.value.emit('round-transition', {
       newGameState,
-      roundResult
+      roundResult: _roundResult,
     })
   }
 
   /**
    * Listen for server-initiated round starts
    */
-  function onRoundStarted(callback: (data: any) => void): void {
+  function onRoundStarted(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.on('round-started', callback)
   }
@@ -482,7 +492,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Remove round started listener
    */
-  function offRoundStarted(callback: (data: any) => void): void {
+  function offRoundStarted(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.off('round-started', callback)
   }
@@ -490,7 +500,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Listen for game started events
    */
-  function onGameStarted(callback: (data: any) => void): void {
+  function onGameStarted(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.on('game-started', callback)
   }
@@ -498,7 +508,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Remove game started listener
    */
-  function offGameStarted(callback: (data: any) => void): void {
+  function offGameStarted(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.off('game-started', callback)
   }
@@ -506,7 +516,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Listen for game ended events
    */
-  function onGameEnded(callback: (data: any) => void): void {
+  function onGameEnded(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.on('game-ended', callback)
   }
@@ -514,7 +524,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Remove game ended listener
    */
-  function offGameEnded(callback: (data: any) => void): void {
+  function offGameEnded(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.off('game-ended', callback)
   }
@@ -522,7 +532,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Listen for player disconnected events
    */
-  function onPlayerDisconnected(callback: (data: any) => void): void {
+  function onPlayerDisconnected(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.on('player-disconnected', callback)
   }
@@ -530,11 +540,10 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   /**
    * Remove player disconnected listener
    */
-  function offPlayerDisconnected(callback: (data: any) => void): void {
+  function offPlayerDisconnected(callback: (_data: any) => void): void {
     if (!socket.value) return
     socket.value.off('player-disconnected', callback)
   }
-
 
   /**
    * Listen for rematch declined events

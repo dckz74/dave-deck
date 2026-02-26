@@ -17,7 +17,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   delay: 600, // 600ms delay as requested
   position: 'auto',
-  disabled: false
+  disabled: false,
 })
 
 const isVisible = ref(false)
@@ -30,7 +30,7 @@ let hideTimer: ReturnType<typeof setTimeout> | null = null
 // Computed position based on viewport and element position
 const computedPosition = computed(() => {
   if (props.position !== 'auto') return props.position
-  
+
   // Default to top, but this would need viewport detection for full auto mode
   return 'top'
 })
@@ -38,15 +38,15 @@ const computedPosition = computed(() => {
 // Calculate tooltip position
 function calculatePosition() {
   if (!triggerRef.value || !isVisible.value) return
-  
+
   const trigger = triggerRef.value
   const rect = trigger.getBoundingClientRect()
   const tooltipWidth = 280 // max-width
   const tooltipHeight = 80 // estimated height
-  
+
   let top = 0
   let left = 0
-  
+
   switch (computedPosition.value) {
     case 'top':
       top = rect.top - tooltipHeight - 8
@@ -65,27 +65,27 @@ function calculatePosition() {
       left = rect.right + 8
       break
   }
-  
+
   // Ensure tooltip stays within viewport
   const viewport = {
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
   }
-  
+
   left = Math.max(8, Math.min(left, viewport.width - tooltipWidth - 8))
   top = Math.max(8, Math.min(top, viewport.height - tooltipHeight - 8))
-  
+
   tooltipStyle.value = {
     position: 'fixed',
     top: `${top}px`,
     left: `${left}px`,
-    transform: 'none'
+    transform: 'none',
   }
 }
 
 function showTooltip() {
   if (props.disabled) return
-  
+
   clearTimeout(hideTimer!)
   showTimer = setTimeout(() => {
     isVisible.value = true
@@ -133,14 +133,14 @@ onUnmounted(() => {
 defineExpose({
   show: showTooltip,
   hide: hideTooltip,
-  isVisible
+  isVisible,
 })
 </script>
 
 <template>
-  <div 
+  <div
     ref="triggerRef"
-    class="tooltip-trigger" 
+    class="tooltip-trigger"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
     @focusin="onFocusIn"
@@ -148,7 +148,7 @@ defineExpose({
   >
     <!-- Trigger content -->
     <slot />
-    
+
     <!-- Tooltip popup -->
     <Teleport to="body">
       <Transition name="tooltip">
@@ -163,7 +163,7 @@ defineExpose({
         >
           <!-- Arrow/pointer -->
           <div class="tooltip-arrow"></div>
-          
+
           <!-- Tooltip content -->
           <div class="tooltip-content">
             <div v-if="title" class="tooltip-title">{{ title }}</div>
@@ -190,19 +190,19 @@ defineExpose({
   transform-origin: bottom center;
 }
 
-.tooltip--top:not([style*="transform: none"]) {
+.tooltip--top:not([style*='transform: none']) {
   transform: translateX(-50%) translateY(-100%);
 }
 
-.tooltip--bottom:not([style*="transform: none"]) {
+.tooltip--bottom:not([style*='transform: none']) {
   transform: translateX(-50%) translateY(8px);
 }
 
-.tooltip--left:not([style*="transform: none"]) {
+.tooltip--left:not([style*='transform: none']) {
   transform: translateX(-100%) translateY(-50%);
 }
 
-.tooltip--right:not([style*="transform: none"]) {
+.tooltip--right:not([style*='transform: none']) {
   transform: translateX(8px) translateY(-50%);
 }
 
@@ -211,7 +211,7 @@ defineExpose({
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
-  box-shadow: 
+  box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -279,7 +279,7 @@ defineExpose({
 /* Smooth animations */
 .tooltip-enter-active,
 .tooltip-leave-active {
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tooltip-enter-from,
@@ -295,23 +295,23 @@ defineExpose({
 }
 
 /* Position-specific animations only when not using custom positioning */
-.tooltip--top:not([style*="transform: none"]).tooltip-enter-from,
-.tooltip--top:not([style*="transform: none"]).tooltip-leave-to {
+.tooltip--top:not([style*='transform: none']).tooltip-enter-from,
+.tooltip--top:not([style*='transform: none']).tooltip-leave-to {
   transform: translateX(-50%) translateY(-100%) scale(0.95);
 }
 
-.tooltip--bottom:not([style*="transform: none"]).tooltip-enter-from,
-.tooltip--bottom:not([style*="transform: none"]).tooltip-leave-to {
+.tooltip--bottom:not([style*='transform: none']).tooltip-enter-from,
+.tooltip--bottom:not([style*='transform: none']).tooltip-leave-to {
   transform: translateX(-50%) translateY(8px) scale(0.95);
 }
 
-.tooltip--left:not([style*="transform: none"]).tooltip-enter-from,
-.tooltip--left:not([style*="transform: none"]).tooltip-leave-to {
+.tooltip--left:not([style*='transform: none']).tooltip-enter-from,
+.tooltip--left:not([style*='transform: none']).tooltip-leave-to {
   transform: translateX(-100%) translateY(-50%) scale(0.95);
 }
 
-.tooltip--right:not([style*="transform: none"]).tooltip-enter-from,
-.tooltip--right:not([style*="transform: none"]).tooltip-leave-to {
+.tooltip--right:not([style*='transform: none']).tooltip-enter-from,
+.tooltip--right:not([style*='transform: none']).tooltip-leave-to {
   transform: translateX(8px) translateY(-50%) scale(0.95);
 }
 
@@ -325,13 +325,17 @@ defineExpose({
   position: absolute;
   inset: -1px;
   padding: 1px;
-  background: linear-gradient(45deg, 
-    transparent 0%, 
-    rgba(233, 69, 96, 0.2) 25%, 
-    rgba(74, 222, 128, 0.2) 75%, 
-    transparent 100%);
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(233, 69, 96, 0.2) 25%,
+    rgba(74, 222, 128, 0.2) 75%,
+    transparent 100%
+  );
   border-radius: inherit;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   mask-composite: exclude;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -347,16 +351,16 @@ defineExpose({
     max-width: 240px;
     font-size: 0.8rem;
   }
-  
+
   .tooltip-content {
     padding: 0.6rem 0.8rem;
   }
-  
+
   .tooltip-title {
     font-size: 0.85rem;
     margin-bottom: 0.4rem;
   }
-  
+
   .tooltip-text {
     font-size: 0.8rem;
   }

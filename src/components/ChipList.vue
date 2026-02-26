@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import ChipTooltip from './ChipTooltip.vue'
-import {CHIP_DEFS} from '@/game/chips'
-import type {Chip, PlayerId} from '@/game/types'
-import {ChipKind} from '@/game/types'
+import { CHIP_DEFS } from '@/game/chips'
+import type { Chip, PlayerId } from '@/game/types'
+import { ChipKind } from '@/game/types'
 
 // Import chip assets - Draw chips (Teal/Blue)
 import draw2Image from '@/assets/draw_2.jpg'
@@ -33,36 +33,54 @@ defineProps<{
   chips: Chip[]
   owner: PlayerId
 }>()
-const emit = defineEmits<{ (e: 'use', chip: Chip): void }>()
+const emit = defineEmits<{ use: [chip: Chip] }>()
 
 function getChipImage(kind: ChipKind): string | null {
   switch (kind) {
     // Draw chips (Teal/Blue)
-    case ChipKind.Draw2: return draw2Image
-    case ChipKind.Draw3: return draw3Image
-    case ChipKind.Draw4: return draw4Image
-    case ChipKind.Draw5: return draw5Image
-    case ChipKind.Draw6: return draw6Image
-    case ChipKind.Draw7: return draw7Image
-    
-    // Utility chips (Purple)
-    case ChipKind.Limit17: return limit17Image
-    case ChipKind.Limit24: return limit24Image
-    case ChipKind.Limit27: return limit27Image
-    case ChipKind.SwapCards: return cardSwapImage
-    case ChipKind.ReturnMyCard: return myCardBackImage
-    case ChipKind.ReturnOpponentCard: return enemyCardBackImage
-    case ChipKind.PerfectDraw: return perfectDrawImage
+    case ChipKind.Draw2:
+      return draw2Image
+    case ChipKind.Draw3:
+      return draw3Image
+    case ChipKind.Draw4:
+      return draw4Image
+    case ChipKind.Draw5:
+      return draw5Image
+    case ChipKind.Draw6:
+      return draw6Image
+    case ChipKind.Draw7:
+      return draw7Image
 
-      // Aggressive chips (Red)
-    case ChipKind.StakePlus1: return attackImage
-    case ChipKind.StakePlus2: return attackPlusImage
-    
+    // Utility chips (Purple)
+    case ChipKind.Limit17:
+      return limit17Image
+    case ChipKind.Limit24:
+      return limit24Image
+    case ChipKind.Limit27:
+      return limit27Image
+    case ChipKind.SwapCards:
+      return cardSwapImage
+    case ChipKind.ReturnMyCard:
+      return myCardBackImage
+    case ChipKind.ReturnOpponentCard:
+      return enemyCardBackImage
+    case ChipKind.PerfectDraw:
+      return perfectDrawImage
+
+    // Aggressive chips (Red)
+    case ChipKind.StakePlus1:
+      return attackImage
+    case ChipKind.StakePlus2:
+      return attackPlusImage
+
     // Defensive chips (Orange)
-    case ChipKind.Shield: return shieldImage
-    case ChipKind.ShieldPlus: return shieldPlusImage
-    
-    default: return null
+    case ChipKind.Shield:
+      return shieldImage
+    case ChipKind.ShieldPlus:
+      return shieldPlusImage
+
+    default:
+      return null
   }
 }
 
@@ -75,7 +93,7 @@ function getChipColorCategory(kind: ChipKind): 'draw' | 'utility' | 'aggressive'
     case ChipKind.Draw6:
     case ChipKind.Draw7:
       return 'draw'
-      
+
     case ChipKind.Limit17:
     case ChipKind.Limit24:
     case ChipKind.Limit27:
@@ -84,11 +102,11 @@ function getChipColorCategory(kind: ChipKind): 'draw' | 'utility' | 'aggressive'
     case ChipKind.ReturnOpponentCard:
     case ChipKind.PerfectDraw:
       return 'utility'
-      
+
     case ChipKind.StakePlus1:
     case ChipKind.StakePlus2:
       return 'aggressive'
-      
+
     case ChipKind.Shield:
     case ChipKind.ShieldPlus:
       return 'defensive'
@@ -108,17 +126,17 @@ function getChipColorCategory(kind: ChipKind): 'draw' | 'utility' | 'aggressive'
         <button
           type="button"
           class="chip"
-          :class="{ 
+          :class="{
             'chip--interactive': owner === 'player',
-            [`chip--${getChipColorCategory(chip.kind)}`]: true
+            [`chip--${getChipColorCategory(chip.kind)}`]: true,
           }"
           :style="{ '--chip-index': index }"
           :disabled="false"
           @click="owner === 'player' ? emit('use', chip) : undefined"
         >
-          <img 
-            v-if="getChipImage(chip.kind)" 
-            :src="getChipImage(chip.kind)!" 
+          <img
+            v-if="getChipImage(chip.kind)"
+            :src="getChipImage(chip.kind)!"
             :alt="CHIP_DEFS[chip.kind].name"
             class="chip-image"
           />
@@ -154,7 +172,9 @@ function getChipColorCategory(kind: ChipKind): 'draw' | 'utility' | 'aggressive'
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
   transform: translateZ(0); /* GPU acceleration */
   animation: chip-appear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: calc(var(--chip-index, 0) * 0.1s);
@@ -257,34 +277,50 @@ function getChipColorCategory(kind: ChipKind): 'draw' | 'utility' | 'aggressive'
 
 /* Color coding for chip types */
 .chip--draw {
-  box-shadow: 0 0 12px rgba(20, 184, 166, 0.4), 0 0 0 2px rgba(20, 184, 166, 0.3);
+  box-shadow:
+    0 0 12px rgba(20, 184, 166, 0.4),
+    0 0 0 2px rgba(20, 184, 166, 0.3);
 }
 
 .chip--draw:hover {
-  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.6), 0 0 0 3px rgba(20, 184, 166, 0.6);
+  box-shadow:
+    0 8px 24px rgba(20, 184, 166, 0.6),
+    0 0 0 3px rgba(20, 184, 166, 0.6);
 }
 
 .chip--utility {
-  box-shadow: 0 0 12px rgba(147, 51, 234, 0.4), 0 0 0 2px rgba(147, 51, 234, 0.3);
+  box-shadow:
+    0 0 12px rgba(147, 51, 234, 0.4),
+    0 0 0 2px rgba(147, 51, 234, 0.3);
 }
 
 .chip--utility:hover {
-  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.6), 0 0 0 3px rgba(147, 51, 234, 0.6);
+  box-shadow:
+    0 8px 24px rgba(147, 51, 234, 0.6),
+    0 0 0 3px rgba(147, 51, 234, 0.6);
 }
 
 .chip--aggressive {
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4), 0 0 0 2px rgba(239, 68, 68, 0.3);
+  box-shadow:
+    0 0 12px rgba(239, 68, 68, 0.4),
+    0 0 0 2px rgba(239, 68, 68, 0.3);
 }
 
 .chip--aggressive:hover {
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.6), 0 0 0 3px rgba(239, 68, 68, 0.6);
+  box-shadow:
+    0 8px 24px rgba(239, 68, 68, 0.6),
+    0 0 0 3px rgba(239, 68, 68, 0.6);
 }
 
 .chip--defensive {
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.4), 0 0 0 2px rgba(249, 115, 22, 0.3);
+  box-shadow:
+    0 0 12px rgba(249, 115, 22, 0.4),
+    0 0 0 2px rgba(249, 115, 22, 0.3);
 }
 
 .chip--defensive:hover {
-  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.6), 0 0 0 3px rgba(249, 115, 22, 0.6);
+  box-shadow:
+    0 8px 24px rgba(249, 115, 22, 0.6),
+    0 0 0 3px rgba(249, 115, 22, 0.6);
 }
 </style>

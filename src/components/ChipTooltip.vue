@@ -15,7 +15,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
-  delay: 500 // Slightly shorter delay for chips since they're interactive
+  delay: 500, // Slightly shorter delay for chips since they're interactive
 })
 
 const triggerElement = ref<HTMLElement>()
@@ -30,7 +30,7 @@ const tooltipTitle = computed(() => chipDef.value.name)
 const tooltipContent = computed(() => {
   const def = chipDef.value
   let content = def.description
-  
+
   // Add value information for certain chips
   if (def.value !== undefined) {
     switch (props.chipKind) {
@@ -61,24 +61,24 @@ const tooltipContent = computed(() => {
         break
     }
   }
-  
+
   return content
 })
 
 // Auto-detect optimal tooltip position based on element position
 function updateTooltipPosition() {
   if (!triggerElement.value) return
-  
+
   const rect = triggerElement.value.getBoundingClientRect()
   const viewportHeight = window.innerHeight
   const viewportWidth = window.innerWidth
-  
+
   // Determine best position based on available space
   const spaceAbove = rect.top
   const spaceBelow = viewportHeight - rect.bottom
   const spaceLeft = rect.left
   const spaceRight = viewportWidth - rect.right
-  
+
   // Prefer top, but switch to bottom if not enough space above
   if (spaceAbove > 100) {
     tooltipPosition.value = 'top'

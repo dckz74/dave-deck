@@ -8,12 +8,8 @@ import ChipList from '@/components/ChipList.vue'
 const game = useGameStore()
 const multiplayer = useMultiplayerStore()
 
-const playerSum = computed(() =>
-  game.player.hand.reduce((s, c) => s + c.value, 0)
-)
-const opponentSum = computed(() =>
-  game.opponent.hand.reduce((s, c) => s + c.value, 0)
-)
+const playerSum = computed(() => game.player.hand.reduce((s, c) => s + c.value, 0))
+const opponentSum = computed(() => game.opponent.hand.reduce((s, c) => s + c.value, 0))
 
 // Visible cards sum for opponent (excluding hidden card)
 const opponentVisibleSum = computed(() => {
@@ -71,10 +67,7 @@ function pointsClass(sum: number): string {
 
       <!-- Phew animation for draws -->
       <Transition name="phew-draw">
-        <div 
-          v-if="game.currentRoundAnimation?.type === 'phew_draw'" 
-          class="phew-draw-effect"
-        >
+        <div v-if="game.currentRoundAnimation?.type === 'phew_draw'" class="phew-draw-effect">
           <div class="phew-emoji">😅</div>
           <div class="phew-text">Unentschieden!</div>
           <div class="relief-sparkles">
@@ -93,10 +86,10 @@ function pointsClass(sum: number): string {
             <h2 class="player-label">{{ opponentName }}</h2>
             <div class="lives" :class="{ 'lives--protected': game.round.shieldOpponent > 0 }">
               <span class="lives-hearts">❤️ {{ game.opponent.lives }}</span>
-              
+
               <!-- Shield protection animation -->
-              <div 
-                v-if="game.round.shieldOpponent > 0" 
+              <div
+                v-if="game.round.shieldOpponent > 0"
                 class="shield-border"
                 :style="{ '--shield-level': game.round.shieldOpponent }"
               >
@@ -108,31 +101,55 @@ function pointsClass(sum: number): string {
 
               <!-- Shield activation animation -->
               <Transition name="shield-activate">
-                <div 
-                  v-if="game.currentChipAnimation?.type === 'shield_activate' && game.currentChipAnimation?.data?.newShield > (game.currentChipAnimation?.data?.oldShield || 0) && game.currentChipAnimation?.data?.target === 'opponent'" 
+                <div
+                  v-if="
+                    game.currentChipAnimation?.type === 'shield_activate' &&
+                    game.currentChipAnimation?.data?.newShield >
+                      (game.currentChipAnimation?.data?.oldShield || 0) &&
+                    game.currentChipAnimation?.data?.target === 'opponent'
+                  "
                   class="shield-activation-effect"
                 >
                   <div class="shield-burst">
                     <span v-for="i in 6" :key="i" class="shield-burst-ring"></span>
                   </div>
                   <div class="shield-level-indicator">
-                    +{{ (game.currentChipAnimation?.data?.newShield || 1) - (game.currentChipAnimation?.data?.oldShield || 0) }} 🛡️
+                    +{{
+                      (game.currentChipAnimation?.data?.newShield || 1) -
+                      (game.currentChipAnimation?.data?.oldShield || 0)
+                    }}
+                    🛡️
                   </div>
                 </div>
               </Transition>
 
               <!-- Heart attack animation for opponent -->
               <Transition name="heart-attack">
-                <div 
-                  v-if="game.currentRoundAnimation?.type === 'heart_attack' && game.currentRoundAnimation?.target === 'opponent'" 
+                <div
+                  v-if="
+                    game.currentRoundAnimation?.type === 'heart_attack' &&
+                    game.currentRoundAnimation?.target === 'opponent'
+                  "
                   class="heart-attack-effect"
                 >
                   <div class="hearts-breaking">
-                    <span v-for="i in (game.currentRoundAnimation?.amount || 1)" :key="i" class="breaking-heart">💔</span>
+                    <span
+                      v-for="i in game.currentRoundAnimation?.amount || 1"
+                      :key="i"
+                      class="breaking-heart"
+                      >💔</span
+                    >
                   </div>
                   <div class="attack-lightning">⚡</div>
                   <div class="damage-number">-{{ game.currentRoundAnimation?.amount || 1 }}</div>
-                  <div v-if="game.currentRoundAnimation?.data?.originalAttack && game.currentRoundAnimation.data.originalAttack > (game.currentRoundAnimation.amount || 0)" class="attack-value">
+                  <div
+                    v-if="
+                      game.currentRoundAnimation?.data?.originalAttack &&
+                      game.currentRoundAnimation.data.originalAttack >
+                        (game.currentRoundAnimation.amount || 0)
+                    "
+                    class="attack-value"
+                  >
                     {{ game.currentRoundAnimation.data.originalAttack }} Angriff
                   </div>
                 </div>
@@ -140,8 +157,11 @@ function pointsClass(sum: number): string {
 
               <!-- Shield blocking animation for opponent -->
               <Transition name="shield-block">
-                <div 
-                  v-if="game.currentRoundAnimation?.type === 'shield_block' && game.currentRoundAnimation?.target === 'opponent'" 
+                <div
+                  v-if="
+                    game.currentRoundAnimation?.type === 'shield_block' &&
+                    game.currentRoundAnimation?.target === 'opponent'
+                  "
                   class="shield-block-effect"
                 >
                   <div class="blocking-shield">🛡️</div>
@@ -149,7 +169,9 @@ function pointsClass(sum: number): string {
                     <span v-for="i in 6" :key="i" class="spark">✨</span>
                   </div>
                   <div class="attack-blocked">
-                    <div class="attack-value">{{ game.currentRoundAnimation?.amount || 1 }} Angriff</div>
+                    <div class="attack-value">
+                      {{ game.currentRoundAnimation?.amount || 1 }} Angriff
+                    </div>
                     <div class="blocked-text">BLOCKIERT!</div>
                   </div>
                   <div class="shield-pulse-ring"></div>
@@ -157,7 +179,7 @@ function pointsClass(sum: number): string {
               </Transition>
             </div>
           </div>
-          
+
           <div class="cards-section">
             <div class="hand-row enemy-hand-row">
               <div class="hand">
@@ -173,16 +195,20 @@ function pointsClass(sum: number): string {
                 :class="[
                   pointsClass(opponentSum),
                   {
-                    'points--winner': game.lastRoundWinner === 'opponent' && game.phase === 'round_result',
-                    'points--loser': game.lastRoundWinner !== 'opponent' && game.lastRoundWinner !== 'draw' && game.phase === 'round_result'
-                  }
+                    'points--winner':
+                      game.lastRoundWinner === 'opponent' && game.phase === 'round_result',
+                    'points--loser':
+                      game.lastRoundWinner !== 'opponent' &&
+                      game.lastRoundWinner !== 'draw' &&
+                      game.phase === 'round_result',
+                  },
                 ]"
               >
                 {{ opponentScoreText }}
               </div>
             </div>
           </div>
-          
+
           <div class="chips-section">
             <ChipList :chips="game.opponent.chips" owner="opponent" />
           </div>
@@ -190,35 +216,41 @@ function pointsClass(sum: number): string {
 
         <!-- Center: Limit, Deck -->
         <section class="center">
-          <div class="limit" :class="{ 'limit--changing': game.currentChipAnimation?.type === 'limit_change' }">
+          <div
+            class="limit"
+            :class="{ 'limit--changing': game.currentChipAnimation?.type === 'limit_change' }"
+          >
             <span>Limit: {{ limit }}</span>
-            
+
             <!-- Limit change animation -->
             <Transition name="limit-change">
-              <div 
-                v-if="game.currentChipAnimation?.type === 'limit_change'" 
+              <div
+                v-if="game.currentChipAnimation?.type === 'limit_change'"
                 class="limit-change-effect"
               >
                 <div class="limit-sparkles">
                   <span v-for="i in 12" :key="i" class="limit-sparkle">✨</span>
                 </div>
                 <div class="limit-change-text">
-                  {{ game.currentChipAnimation?.data?.oldLimit || 21 }} 
-                  → 
+                  {{ game.currentChipAnimation?.data?.oldLimit || 21 }}
+                  →
                   {{ game.currentChipAnimation?.data?.newLimit || 21 }}
                 </div>
               </div>
             </Transition>
           </div>
-          
+
           <!-- Attack value indicator when stake is increased -->
           <Transition name="attack-indicator">
-            <div 
-              v-if="hasIncreasedAttack" 
+            <div
+              v-if="hasIncreasedAttack"
               class="attack-indicator"
               :class="{ 'danger-pulse': hasIncreasedAttack }"
             >
-              <div class="attack-glow" :style="{ '--attack-level': game.round.stakeModifier }"></div>
+              <div
+                class="attack-glow"
+                :style="{ '--attack-level': game.round.stakeModifier }"
+              ></div>
               <div class="attack-content">
                 <div class="attack-icon">⚡</div>
                 <div class="attack-text">
@@ -234,8 +266,8 @@ function pointsClass(sum: number): string {
 
           <!-- Stake increase animation -->
           <Transition name="stake-increase">
-            <div 
-              v-if="game.currentChipAnimation?.type === 'stake_increase'" 
+            <div
+              v-if="game.currentChipAnimation?.type === 'stake_increase'"
               class="stake-increase-effect"
             >
               <div class="stake-explosion">
@@ -255,33 +287,33 @@ function pointsClass(sum: number): string {
             <div class="deck-visual">
               <!-- Stacked deck cards - show 1-3 based on remaining cards -->
               <div class="deck-stack">
-                <img 
-                  v-if="game.round.deck.length >= 1" 
-                  src="@/assets/deck.png" 
-                  alt="Card Deck" 
-                  class="deck-image deck-card-1" 
+                <img
+                  v-if="game.round.deck.length >= 1"
+                  src="@/assets/deck.png"
+                  alt="Card Deck"
+                  class="deck-image deck-card-1"
                 />
-                <img 
-                  v-if="game.round.deck.length >= 8" 
-                  src="@/assets/deck.png" 
-                  alt="Card Deck" 
-                  class="deck-image deck-card-2" 
+                <img
+                  v-if="game.round.deck.length >= 8"
+                  src="@/assets/deck.png"
+                  alt="Card Deck"
+                  class="deck-image deck-card-2"
                 />
-                <img 
-                  v-if="game.round.deck.length >= 15" 
-                  src="@/assets/deck.png" 
-                  alt="Card Deck" 
-                  class="deck-image deck-card-3" 
+                <img
+                  v-if="game.round.deck.length >= 15"
+                  src="@/assets/deck.png"
+                  alt="Card Deck"
+                  class="deck-image deck-card-3"
                 />
               </div>
               <div class="deck-count">{{ game.round.deck.length }}</div>
               <!-- Card flying animation -->
               <Transition name="card-fly">
-                <div 
-                  v-if="game.currentRoundAnimation?.type === 'card_draw'" 
+                <div
+                  v-if="game.currentRoundAnimation?.type === 'card_draw'"
                   class="flying-card-effect"
                 >
-                  <div 
+                  <div
                     class="flying-card"
                     :class="{ 'flying-to-player': game.currentRoundAnimation?.target === 'player' }"
                   >
@@ -297,15 +329,16 @@ function pointsClass(sum: number): string {
               <div class="chip-animations">
                 <!-- Card return animation -->
                 <Transition name="card-return">
-                  <div 
-                    v-if="game.currentChipAnimation?.type === 'card_return'" 
+                  <div
+                    v-if="game.currentChipAnimation?.type === 'card_return'"
                     class="card-return-effect"
                   >
-                    <div 
+                    <div
                       class="returning-card"
                       :class="{
                         'return-from-player': game.currentChipAnimation?.data?.player === 'player',
-                        'return-from-opponent': game.currentChipAnimation?.data?.player === 'opponent'
+                        'return-from-opponent':
+                          game.currentChipAnimation?.data?.player === 'opponent',
                       }"
                     >
                       <div class="card-back"></div>
@@ -316,18 +349,22 @@ function pointsClass(sum: number): string {
 
                 <!-- Cards swap animation -->
                 <Transition name="cards-swap">
-                  <div 
-                    v-if="game.currentChipAnimation?.type === 'cards_swap'" 
+                  <div
+                    v-if="game.currentChipAnimation?.type === 'cards_swap'"
                     class="cards-swap-effect"
                   >
                     <!-- Player card moving to opponent -->
                     <div class="swap-card swap-from-player">
-                      <div class="card-front">{{ game.currentChipAnimation?.data?.playerCard?.value || '?' }}</div>
+                      <div class="card-front">
+                        {{ game.currentChipAnimation?.data?.playerCard?.value || '?' }}
+                      </div>
                       <div class="swap-trail-circular player-trail"></div>
                     </div>
                     <!-- Opponent card moving to player -->
                     <div class="swap-card swap-from-opponent">
-                      <div class="card-front">{{ game.currentChipAnimation?.data?.opponentCard?.value || '?' }}</div>
+                      <div class="card-front">
+                        {{ game.currentChipAnimation?.data?.opponentCard?.value || '?' }}
+                      </div>
                       <div class="swap-trail-circular opponent-trail"></div>
                     </div>
                     <!-- Visual enhancement elements -->
@@ -338,12 +375,14 @@ function pointsClass(sum: number): string {
 
                 <!-- Perfect draw animation -->
                 <Transition name="perfect-draw">
-                  <div 
-                    v-if="game.currentChipAnimation?.type === 'perfect_draw'" 
+                  <div
+                    v-if="game.currentChipAnimation?.type === 'perfect_draw'"
                     class="perfect-draw-effect"
                   >
                     <div class="perfect-card">
-                      <div class="card-front golden">{{ game.currentChipAnimation?.data?.newCard?.value || '?' }}</div>
+                      <div class="card-front golden">
+                        {{ game.currentChipAnimation?.data?.newCard?.value || '?' }}
+                      </div>
                       <div class="golden-sparkles">
                         <span v-for="i in 8" :key="i" class="golden-sparkle">✨</span>
                       </div>
@@ -361,7 +400,7 @@ function pointsClass(sum: number): string {
           <div class="chips-section">
             <ChipList :chips="game.player.chips" owner="player" @use="game.applyChip" />
           </div>
-          
+
           <div class="cards-section">
             <div class="hand-row player-hand-row">
               <div class="hand">
@@ -377,29 +416,33 @@ function pointsClass(sum: number): string {
                 :class="[
                   pointsClass(playerSum),
                   {
-                    'points--winner': game.lastRoundWinner === 'player' && game.phase === 'round_result',
-                    'points--loser': game.lastRoundWinner !== 'player' && game.lastRoundWinner !== 'draw' && game.phase === 'round_result'
-                  }
+                    'points--winner':
+                      game.lastRoundWinner === 'player' && game.phase === 'round_result',
+                    'points--loser':
+                      game.lastRoundWinner !== 'player' &&
+                      game.lastRoundWinner !== 'draw' &&
+                      game.phase === 'round_result',
+                  },
                 ]"
               >
                 {{ playerSum }}/{{ limit }}
               </div>
             </div>
           </div>
-          
+
           <div class="player-section">
             <div class="actions">
-              <button 
-                type="button" 
-                class="btn btn-hit" 
+              <button
+                type="button"
+                class="btn btn-hit"
                 :disabled="!game.isPlayerTurn || game.phase !== 'playing' || game.isAnimating"
                 @click="game.doHit"
               >
                 Karte ziehen
               </button>
-              <button 
-                type="button" 
-                class="btn btn-skip" 
+              <button
+                type="button"
+                class="btn btn-skip"
                 :disabled="!game.isPlayerTurn || game.phase !== 'playing' || game.isAnimating"
                 @click="game.doSkip"
               >
@@ -408,10 +451,10 @@ function pointsClass(sum: number): string {
             </div>
             <div class="lives" :class="{ 'lives--protected': game.round.shieldPlayer > 0 }">
               <span class="lives-hearts">❤️ {{ game.player.lives }}</span>
-              
+
               <!-- Shield protection animation -->
-              <div 
-                v-if="game.round.shieldPlayer > 0" 
+              <div
+                v-if="game.round.shieldPlayer > 0"
                 class="shield-border"
                 :style="{ '--shield-level': game.round.shieldPlayer }"
               >
@@ -423,31 +466,55 @@ function pointsClass(sum: number): string {
 
               <!-- Shield activation animation -->
               <Transition name="shield-activate">
-                <div 
-                  v-if="game.currentChipAnimation?.type === 'shield_activate' && game.currentChipAnimation?.data?.newShield > (game.currentChipAnimation?.data?.oldShield || 0) && game.currentChipAnimation?.data?.target === 'player'" 
+                <div
+                  v-if="
+                    game.currentChipAnimation?.type === 'shield_activate' &&
+                    game.currentChipAnimation?.data?.newShield >
+                      (game.currentChipAnimation?.data?.oldShield || 0) &&
+                    game.currentChipAnimation?.data?.target === 'player'
+                  "
                   class="shield-activation-effect"
                 >
                   <div class="shield-burst">
                     <span v-for="i in 6" :key="i" class="shield-burst-ring"></span>
                   </div>
                   <div class="shield-level-indicator">
-                    +{{ (game.currentChipAnimation?.data?.newShield || 1) - (game.currentChipAnimation?.data?.oldShield || 0) }} 🛡️
+                    +{{
+                      (game.currentChipAnimation?.data?.newShield || 1) -
+                      (game.currentChipAnimation?.data?.oldShield || 0)
+                    }}
+                    🛡️
                   </div>
                 </div>
               </Transition>
 
               <!-- Heart attack animation for player -->
               <Transition name="heart-attack">
-                <div 
-                  v-if="game.currentRoundAnimation?.type === 'heart_attack' && game.currentRoundAnimation?.target === 'player'" 
+                <div
+                  v-if="
+                    game.currentRoundAnimation?.type === 'heart_attack' &&
+                    game.currentRoundAnimation?.target === 'player'
+                  "
                   class="heart-attack-effect"
                 >
                   <div class="hearts-breaking">
-                    <span v-for="i in (game.currentRoundAnimation?.amount || 1)" :key="i" class="breaking-heart">💔</span>
+                    <span
+                      v-for="i in game.currentRoundAnimation?.amount || 1"
+                      :key="i"
+                      class="breaking-heart"
+                      >💔</span
+                    >
                   </div>
                   <div class="attack-lightning">⚡</div>
                   <div class="damage-number">-{{ game.currentRoundAnimation?.amount || 1 }}</div>
-                  <div v-if="game.currentRoundAnimation?.data?.originalAttack && game.currentRoundAnimation.data.originalAttack > (game.currentRoundAnimation.amount || 0)" class="attack-value">
+                  <div
+                    v-if="
+                      game.currentRoundAnimation?.data?.originalAttack &&
+                      game.currentRoundAnimation.data.originalAttack >
+                        (game.currentRoundAnimation.amount || 0)
+                    "
+                    class="attack-value"
+                  >
                     {{ game.currentRoundAnimation.data.originalAttack }} Angriff
                   </div>
                 </div>
@@ -455,8 +522,11 @@ function pointsClass(sum: number): string {
 
               <!-- Shield blocking animation for player -->
               <Transition name="shield-block">
-                <div 
-                  v-if="game.currentRoundAnimation?.type === 'shield_block' && game.currentRoundAnimation?.target === 'player'" 
+                <div
+                  v-if="
+                    game.currentRoundAnimation?.type === 'shield_block' &&
+                    game.currentRoundAnimation?.target === 'player'
+                  "
                   class="shield-block-effect"
                 >
                   <div class="blocking-shield">🛡️</div>
@@ -464,7 +534,9 @@ function pointsClass(sum: number): string {
                     <span v-for="i in 6" :key="i" class="spark">✨</span>
                   </div>
                   <div class="attack-blocked">
-                    <div class="attack-value">{{ game.currentRoundAnimation?.amount || 1 }} Angriff</div>
+                    <div class="attack-value">
+                      {{ game.currentRoundAnimation?.amount || 1 }} Angriff
+                    </div>
                     <div class="blocked-text">BLOCKIERT!</div>
                   </div>
                   <div class="shield-pulse-ring"></div>
@@ -476,7 +548,6 @@ function pointsClass(sum: number): string {
         </section>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -513,7 +584,9 @@ function pointsClass(sum: number): string {
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 24px;
-  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   display: grid;
   grid-template-rows: 1fr auto 1fr;
   gap: 0.5rem;
@@ -542,19 +615,24 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes danger-pulse {
-  0%, 100% {
-    box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  0%,
+  100% {
+    box-shadow:
+      var(--shadow),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
   50% {
-    box-shadow: var(--shadow), 
-                0 0 40px rgba(220, 38, 38, 0.6),
-                0 0 80px rgba(220, 38, 38, 0.4),
-                inset 0 0 0 2px rgba(220, 38, 38, 0.8);
+    box-shadow:
+      var(--shadow),
+      0 0 40px rgba(220, 38, 38, 0.6),
+      0 0 80px rgba(220, 38, 38, 0.4),
+      inset 0 0 0 2px rgba(220, 38, 38, 0.8);
   }
 }
 
 @keyframes danger-glow {
-  0%, 100% {
+  0%,
+  100% {
     background: rgba(220, 38, 38, 0.1);
   }
   50% {
@@ -575,10 +653,12 @@ function pointsClass(sum: number): string {
 .attack-glow {
   position: absolute;
   inset: -8px;
-  background: radial-gradient(circle, 
-    rgba(239, 68, 68, calc(0.4 + var(--attack-level, 1) * 0.2)) 0%, 
-    rgba(220, 38, 38, calc(0.2 + var(--attack-level, 1) * 0.1)) 50%, 
-    transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(239, 68, 68, calc(0.4 + var(--attack-level, 1) * 0.2)) 0%,
+    rgba(220, 38, 38, calc(0.2 + var(--attack-level, 1) * 0.1)) 50%,
+    transparent 100%
+  );
   border-radius: 12px;
   animation: attack-glow-pulse 1.5s ease-in-out infinite;
 }
@@ -592,8 +672,9 @@ function pointsClass(sum: number): string {
   background: rgba(220, 38, 38, 0.9);
   border-radius: 8px;
   border: 2px solid rgba(239, 68, 68, 0.8);
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.6),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 0 20px rgba(220, 38, 38, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .attack-icon {
@@ -659,7 +740,8 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes attack-glow-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.6;
     transform: scale(1);
   }
@@ -670,16 +752,20 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes lightning-flash {
-  0%, 90%, 100% {
+  0%,
+  90%,
+  100% {
     filter: brightness(1);
   }
-  45%, 55% {
+  45%,
+  55% {
     filter: brightness(2) drop-shadow(0 0 8px rgba(255, 255, 0, 0.8));
   }
 }
 
 @keyframes spark-dance {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(0.8) rotate(0deg);
   }
@@ -821,7 +907,9 @@ function pointsClass(sum: number): string {
   text-align: center;
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .points--ok {
@@ -870,7 +958,6 @@ function pointsClass(sum: number): string {
   font-weight: 700;
   color: var(--color-accent);
 }
-
 
 .deck-visual {
   position: relative;
@@ -1011,14 +1098,24 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes chip-pulse {
-  0% { transform: translateX(-50%) scale(0.9); opacity: 0; }
-  50% { transform: translateX(-50%) scale(1.05); }
-  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  0% {
+    transform: translateX(-50%) scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
 }
 
 .chip-feedback-enter-active,
 .chip-feedback-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .chip-feedback-enter-from,
@@ -1051,9 +1148,15 @@ function pointsClass(sum: number): string {
   animation: heart-break 2s ease-out forwards;
 }
 
-.breaking-heart:nth-child(1) { animation-delay: 0s; }
-.breaking-heart:nth-child(2) { animation-delay: 0.2s; }
-.breaking-heart:nth-child(3) { animation-delay: 0.4s; }
+.breaking-heart:nth-child(1) {
+  animation-delay: 0s;
+}
+.breaking-heart:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.breaking-heart:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 .attack-lightning {
   font-size: 3rem;
@@ -1194,12 +1297,30 @@ function pointsClass(sum: number): string {
   animation: spark-burst 0.8s ease-out forwards;
 }
 
-.spark:nth-child(1) { transform: rotate(0deg) translateX(60px); animation-delay: 0s; }
-.spark:nth-child(2) { transform: rotate(60deg) translateX(60px); animation-delay: 0.1s; }
-.spark:nth-child(3) { transform: rotate(120deg) translateX(60px); animation-delay: 0.2s; }
-.spark:nth-child(4) { transform: rotate(180deg) translateX(60px); animation-delay: 0.1s; }
-.spark:nth-child(5) { transform: rotate(240deg) translateX(60px); animation-delay: 0.3s; }
-.spark:nth-child(6) { transform: rotate(300deg) translateX(60px); animation-delay: 0.05s; }
+.spark:nth-child(1) {
+  transform: rotate(0deg) translateX(60px);
+  animation-delay: 0s;
+}
+.spark:nth-child(2) {
+  transform: rotate(60deg) translateX(60px);
+  animation-delay: 0.1s;
+}
+.spark:nth-child(3) {
+  transform: rotate(120deg) translateX(60px);
+  animation-delay: 0.2s;
+}
+.spark:nth-child(4) {
+  transform: rotate(180deg) translateX(60px);
+  animation-delay: 0.1s;
+}
+.spark:nth-child(5) {
+  transform: rotate(240deg) translateX(60px);
+  animation-delay: 0.3s;
+}
+.spark:nth-child(6) {
+  transform: rotate(300deg) translateX(60px);
+  animation-delay: 0.05s;
+}
 
 .attack-blocked {
   position: absolute;
@@ -1239,8 +1360,12 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes shield-block-pulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  100% { transform: translate(-50%, -50%) scale(1.2); }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
 }
 
 @keyframes spark-burst {
@@ -1274,17 +1399,23 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes blocked-flash {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     text-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
   }
-  25%, 75% {
+  25%,
+  75% {
     opacity: 1;
-    text-shadow: 0 0 20px rgba(34, 197, 94, 1), 0 0 30px rgba(34, 197, 94, 0.8);
+    text-shadow:
+      0 0 20px rgba(34, 197, 94, 1),
+      0 0 30px rgba(34, 197, 94, 0.8);
   }
   50% {
     opacity: 1;
-    text-shadow: 0 0 25px rgba(34, 197, 94, 1), 0 0 35px rgba(34, 197, 94, 0.9);
+    text-shadow:
+      0 0 25px rgba(34, 197, 94, 1),
+      0 0 35px rgba(34, 197, 94, 0.9);
   }
 }
 
@@ -1367,18 +1498,54 @@ function pointsClass(sum: number): string {
   animation: sparkle-burst 1.8s ease-out forwards;
 }
 
-.sparkle:nth-child(1) { --angle: 0deg; animation-delay: 0.1s; }
-.sparkle:nth-child(2) { --angle: 30deg; animation-delay: 0.2s; }
-.sparkle:nth-child(3) { --angle: 60deg; animation-delay: 0.3s; }
-.sparkle:nth-child(4) { --angle: 90deg; animation-delay: 0.1s; }
-.sparkle:nth-child(5) { --angle: 120deg; animation-delay: 0.2s; }
-.sparkle:nth-child(6) { --angle: 150deg; animation-delay: 0.3s; }
-.sparkle:nth-child(7) { --angle: 180deg; animation-delay: 0.1s; }
-.sparkle:nth-child(8) { --angle: 210deg; animation-delay: 0.2s; }
-.sparkle:nth-child(9) { --angle: 240deg; animation-delay: 0.3s; }
-.sparkle:nth-child(10) { --angle: 270deg; animation-delay: 0.1s; }
-.sparkle:nth-child(11) { --angle: 300deg; animation-delay: 0.2s; }
-.sparkle:nth-child(12) { --angle: 330deg; animation-delay: 0.3s; }
+.sparkle:nth-child(1) {
+  --angle: 0deg;
+  animation-delay: 0.1s;
+}
+.sparkle:nth-child(2) {
+  --angle: 30deg;
+  animation-delay: 0.2s;
+}
+.sparkle:nth-child(3) {
+  --angle: 60deg;
+  animation-delay: 0.3s;
+}
+.sparkle:nth-child(4) {
+  --angle: 90deg;
+  animation-delay: 0.1s;
+}
+.sparkle:nth-child(5) {
+  --angle: 120deg;
+  animation-delay: 0.2s;
+}
+.sparkle:nth-child(6) {
+  --angle: 150deg;
+  animation-delay: 0.3s;
+}
+.sparkle:nth-child(7) {
+  --angle: 180deg;
+  animation-delay: 0.1s;
+}
+.sparkle:nth-child(8) {
+  --angle: 210deg;
+  animation-delay: 0.2s;
+}
+.sparkle:nth-child(9) {
+  --angle: 240deg;
+  animation-delay: 0.3s;
+}
+.sparkle:nth-child(10) {
+  --angle: 270deg;
+  animation-delay: 0.1s;
+}
+.sparkle:nth-child(11) {
+  --angle: 300deg;
+  animation-delay: 0.2s;
+}
+.sparkle:nth-child(12) {
+  --angle: 330deg;
+  animation-delay: 0.3s;
+}
 
 @keyframes phew-bounce {
   0% {
@@ -1472,7 +1639,7 @@ function pointsClass(sum: number): string {
   20% {
     transform: scale(1.15);
     filter: brightness(1.5);
-    box-shadow: 
+    box-shadow:
       0 0 20px rgba(34, 197, 94, 0.8),
       0 0 40px rgba(34, 197, 94, 0.6),
       0 0 60px rgba(34, 197, 94, 0.4);
@@ -1494,7 +1661,8 @@ function pointsClass(sum: number): string {
 
 /* Defeat animation - subtle shake */
 @keyframes defeat-shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   20% {
@@ -1678,77 +1846,78 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes shield-rotate {
-  0% { 
-    transform: rotate(0deg) scale(1); 
+  0% {
+    transform: rotate(0deg) scale(1);
     opacity: 0.8;
   }
-  50% { 
-    transform: rotate(180deg) scale(1.05); 
+  50% {
+    transform: rotate(180deg) scale(1.05);
     opacity: 1;
   }
-  100% { 
-    transform: rotate(360deg) scale(1); 
+  100% {
+    transform: rotate(360deg) scale(1);
     opacity: 0.8;
   }
 }
 
 @keyframes shield-marker-pulse {
-  0% { 
-    transform: translateX(-50%) scale(1); 
+  0% {
+    transform: translateX(-50%) scale(1);
     opacity: 0.7;
   }
-  100% { 
-    transform: translateX(-50%) scale(1.3); 
+  100% {
+    transform: translateX(-50%) scale(1.3);
     opacity: 1;
     box-shadow: 0 0 12px rgba(34, 197, 94, 1);
   }
 }
 
 @keyframes shield-particle-orbit {
-  0% { 
+  0% {
     transform: rotate(0deg) translateX(var(--orbit-radius, 25px)) rotate(0deg);
     opacity: 0;
   }
-  10% { 
+  10% {
     opacity: 1;
   }
-  90% { 
+  90% {
     opacity: 1;
   }
-  100% { 
+  100% {
     transform: rotate(360deg) translateX(var(--orbit-radius, 25px)) rotate(-360deg);
     opacity: 0;
   }
 }
 
 @keyframes shield-heart-pulse {
-  0%, 100% { 
+  0%,
+  100% {
     transform: scale(1);
     text-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
   }
-  50% { 
+  50% {
     transform: scale(1.05);
     text-shadow: 0 0 18px rgba(34, 197, 94, 1);
   }
 }
 
 /* Shield intensity variations */
-.shield-border[style*="--shield-level: 1"] .shield-ring {
+.shield-border[style*='--shield-level: 1'] .shield-ring {
   border-color: rgba(34, 197, 94, 0.8);
   animation-duration: 2.5s;
 }
 
-.shield-border[style*="--shield-level: 2"] .shield-ring {
+.shield-border[style*='--shield-level: 2'] .shield-ring {
   border-color: rgba(34, 197, 94, 1);
   animation-duration: 2s;
   border-width: 4px;
 }
 
-.shield-border[style*="--shield-level: 3"] .shield-ring {
+.shield-border[style*='--shield-level: 3'] .shield-ring {
   border-color: rgba(34, 197, 94, 1);
   animation-duration: 1.5s;
   border-width: 5px;
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(34, 197, 94, 0.8),
     inset 0 0 15px rgba(34, 197, 94, 0.4);
 }
@@ -1758,47 +1927,47 @@ function pointsClass(sum: number): string {
   .table {
     padding: 0.5rem;
   }
-  
+
   .table-surface {
     padding: 0.75rem;
     gap: 0.25rem;
   }
-  
+
   .player-area {
     grid-template-columns: 80px 1fr 80px;
     gap: 0.5rem;
     min-height: 150px;
     padding: 0.5rem;
   }
-  
+
   .center {
     padding: 1rem;
     margin: 0.5rem;
   }
-  
+
   .player-section {
     min-width: 80px;
   }
-  
+
   .chips-section {
     min-height: 60px;
     padding: 0.25rem;
   }
-  
+
   .hand {
     min-height: 60px;
   }
-  
+
   .actions {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .btn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
   }
-  
+
   .deck-visual {
     width: 50px;
     height: 70px;
@@ -1848,10 +2017,12 @@ function pointsClass(sum: number): string {
   position: absolute;
   width: 3px;
   height: 80px;
-  background: linear-gradient(to bottom, 
-    rgba(147, 51, 234, 0.8) 0%, 
-    rgba(147, 51, 234, 0.4) 50%, 
-    transparent 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(147, 51, 234, 0.8) 0%,
+    rgba(147, 51, 234, 0.4) 50%,
+    transparent 100%
+  );
   left: 50%;
   transform: translateX(-50%);
   animation: trail-fade 1s ease-out forwards;
@@ -1894,8 +2065,12 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes trail-fade {
-  0% { opacity: 0.8; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .card-return-enter-active,
@@ -1957,10 +2132,12 @@ function pointsClass(sum: number): string {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: radial-gradient(circle, 
-    rgba(147, 51, 234, 0.9) 0%, 
-    rgba(147, 51, 234, 0.6) 60%, 
-    transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(147, 51, 234, 0.9) 0%,
+    rgba(147, 51, 234, 0.6) 60%,
+    transparent 100%
+  );
   box-shadow: 0 0 12px rgba(147, 51, 234, 0.8);
   z-index: 2;
 }
@@ -1993,10 +2170,12 @@ function pointsClass(sum: number): string {
   transform: translate(-50%, -50%);
   width: 80px;
   height: 80px;
-  background: radial-gradient(circle, 
-    rgba(147, 51, 234, 0.8) 0%, 
-    rgba(147, 51, 234, 0.4) 40%, 
-    transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(147, 51, 234, 0.8) 0%,
+    rgba(147, 51, 234, 0.4) 40%,
+    transparent 70%
+  );
   border-radius: 50%;
   z-index: 3;
   animation: energy-burst-pulse 2.5s ease-in-out forwards;
@@ -2245,7 +2424,7 @@ function pointsClass(sum: number): string {
   justify-content: center;
   font-weight: 900;
   font-size: 1.2rem;
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(251, 191, 36, 0.8),
     0 4px 12px rgba(0, 0, 0, 0.3);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -2264,22 +2443,48 @@ function pointsClass(sum: number): string {
   animation: golden-sparkle-dance 1.8s ease-out forwards;
 }
 
-.golden-sparkle:nth-child(1) { --sparkle-angle: 0deg; animation-delay: 0.1s; }
-.golden-sparkle:nth-child(2) { --sparkle-angle: 45deg; animation-delay: 0.2s; }
-.golden-sparkle:nth-child(3) { --sparkle-angle: 90deg; animation-delay: 0.3s; }
-.golden-sparkle:nth-child(4) { --sparkle-angle: 135deg; animation-delay: 0.1s; }
-.golden-sparkle:nth-child(5) { --sparkle-angle: 180deg; animation-delay: 0.2s; }
-.golden-sparkle:nth-child(6) { --sparkle-angle: 225deg; animation-delay: 0.3s; }
-.golden-sparkle:nth-child(7) { --sparkle-angle: 270deg; animation-delay: 0.1s; }
-.golden-sparkle:nth-child(8) { --sparkle-angle: 315deg; animation-delay: 0.2s; }
+.golden-sparkle:nth-child(1) {
+  --sparkle-angle: 0deg;
+  animation-delay: 0.1s;
+}
+.golden-sparkle:nth-child(2) {
+  --sparkle-angle: 45deg;
+  animation-delay: 0.2s;
+}
+.golden-sparkle:nth-child(3) {
+  --sparkle-angle: 90deg;
+  animation-delay: 0.3s;
+}
+.golden-sparkle:nth-child(4) {
+  --sparkle-angle: 135deg;
+  animation-delay: 0.1s;
+}
+.golden-sparkle:nth-child(5) {
+  --sparkle-angle: 180deg;
+  animation-delay: 0.2s;
+}
+.golden-sparkle:nth-child(6) {
+  --sparkle-angle: 225deg;
+  animation-delay: 0.3s;
+}
+.golden-sparkle:nth-child(7) {
+  --sparkle-angle: 270deg;
+  animation-delay: 0.1s;
+}
+.golden-sparkle:nth-child(8) {
+  --sparkle-angle: 315deg;
+  animation-delay: 0.2s;
+}
 
 .perfect-aura {
   position: absolute;
   inset: -15px;
-  background: radial-gradient(circle, 
-    rgba(251, 191, 36, 0.4) 0%, 
-    rgba(251, 191, 36, 0.2) 40%, 
-    transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(251, 191, 36, 0.4) 0%,
+    rgba(251, 191, 36, 0.2) 40%,
+    transparent 70%
+  );
   border-radius: 50%;
   animation: perfect-aura-pulse 1.2s ease-out infinite alternate;
 }
@@ -2373,18 +2578,54 @@ function pointsClass(sum: number): string {
   animation: limit-sparkle-burst 1.5s ease-out forwards;
 }
 
-.limit-sparkle:nth-child(1) { --limit-angle: 0deg; animation-delay: 0s; }
-.limit-sparkle:nth-child(2) { --limit-angle: 30deg; animation-delay: 0.1s; }
-.limit-sparkle:nth-child(3) { --limit-angle: 60deg; animation-delay: 0.2s; }
-.limit-sparkle:nth-child(4) { --limit-angle: 90deg; animation-delay: 0s; }
-.limit-sparkle:nth-child(5) { --limit-angle: 120deg; animation-delay: 0.1s; }
-.limit-sparkle:nth-child(6) { --limit-angle: 150deg; animation-delay: 0.2s; }
-.limit-sparkle:nth-child(7) { --limit-angle: 180deg; animation-delay: 0s; }
-.limit-sparkle:nth-child(8) { --limit-angle: 210deg; animation-delay: 0.1s; }
-.limit-sparkle:nth-child(9) { --limit-angle: 240deg; animation-delay: 0.2s; }
-.limit-sparkle:nth-child(10) { --limit-angle: 270deg; animation-delay: 0s; }
-.limit-sparkle:nth-child(11) { --limit-angle: 300deg; animation-delay: 0.1s; }
-.limit-sparkle:nth-child(12) { --limit-angle: 330deg; animation-delay: 0.2s; }
+.limit-sparkle:nth-child(1) {
+  --limit-angle: 0deg;
+  animation-delay: 0s;
+}
+.limit-sparkle:nth-child(2) {
+  --limit-angle: 30deg;
+  animation-delay: 0.1s;
+}
+.limit-sparkle:nth-child(3) {
+  --limit-angle: 60deg;
+  animation-delay: 0.2s;
+}
+.limit-sparkle:nth-child(4) {
+  --limit-angle: 90deg;
+  animation-delay: 0s;
+}
+.limit-sparkle:nth-child(5) {
+  --limit-angle: 120deg;
+  animation-delay: 0.1s;
+}
+.limit-sparkle:nth-child(6) {
+  --limit-angle: 150deg;
+  animation-delay: 0.2s;
+}
+.limit-sparkle:nth-child(7) {
+  --limit-angle: 180deg;
+  animation-delay: 0s;
+}
+.limit-sparkle:nth-child(8) {
+  --limit-angle: 210deg;
+  animation-delay: 0.1s;
+}
+.limit-sparkle:nth-child(9) {
+  --limit-angle: 240deg;
+  animation-delay: 0.2s;
+}
+.limit-sparkle:nth-child(10) {
+  --limit-angle: 270deg;
+  animation-delay: 0s;
+}
+.limit-sparkle:nth-child(11) {
+  --limit-angle: 300deg;
+  animation-delay: 0.1s;
+}
+.limit-sparkle:nth-child(12) {
+  --limit-angle: 330deg;
+  animation-delay: 0.2s;
+}
 
 .limit-change-text {
   position: absolute;
@@ -2492,12 +2733,24 @@ function pointsClass(sum: number): string {
   animation: shield-ring-expand 1s ease-out forwards;
 }
 
-.shield-burst-ring:nth-child(1) { animation-delay: 0s; }
-.shield-burst-ring:nth-child(2) { animation-delay: 0.1s; }
-.shield-burst-ring:nth-child(3) { animation-delay: 0.2s; }
-.shield-burst-ring:nth-child(4) { animation-delay: 0.3s; }
-.shield-burst-ring:nth-child(5) { animation-delay: 0.4s; }
-.shield-burst-ring:nth-child(6) { animation-delay: 0.5s; }
+.shield-burst-ring:nth-child(1) {
+  animation-delay: 0s;
+}
+.shield-burst-ring:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.shield-burst-ring:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.shield-burst-ring:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.shield-burst-ring:nth-child(5) {
+  animation-delay: 0.4s;
+}
+.shield-burst-ring:nth-child(6) {
+  animation-delay: 0.5s;
+}
 
 .shield-level-indicator {
   position: absolute;
@@ -2579,10 +2832,12 @@ function pointsClass(sum: number): string {
   content: '';
   position: absolute;
   inset: -10px;
-  background: radial-gradient(circle, 
-    rgba(220, 38, 38, 0.3) 0%, 
-    rgba(220, 38, 38, 0.1) 50%, 
-    transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(220, 38, 38, 0.3) 0%,
+    rgba(220, 38, 38, 0.1) 50%,
+    transparent 70%
+  );
   border-radius: 20px;
   animation: stake-aura-pulse 2s ease-in-out infinite;
   pointer-events: none;
@@ -2607,7 +2862,8 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes stake-aura-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.6;
     transform: scale(1);
   }
@@ -2618,7 +2874,8 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes deck-danger-glow {
-  0%, 100% {
+  0%,
+  100% {
     filter: brightness(1);
   }
   50% {
@@ -2627,7 +2884,8 @@ function pointsClass(sum: number): string {
 }
 
 @keyframes danger-glow-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
   }
@@ -2673,10 +2931,18 @@ function pointsClass(sum: number): string {
   animation: explosion-ring-burst 1s ease-out forwards;
 }
 
-.explosion-ring:nth-child(1) { animation-delay: 0s; }
-.explosion-ring:nth-child(2) { animation-delay: 0.1s; }
-.explosion-ring:nth-child(3) { animation-delay: 0.2s; }
-.explosion-ring:nth-child(4) { animation-delay: 0.3s; }
+.explosion-ring:nth-child(1) {
+  animation-delay: 0s;
+}
+.explosion-ring:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.explosion-ring:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.explosion-ring:nth-child(4) {
+  animation-delay: 0.3s;
+}
 
 .lightning-bolts {
   position: absolute;
@@ -2693,12 +2959,30 @@ function pointsClass(sum: number): string {
   animation: lightning-blast 1.2s ease-out forwards;
 }
 
-.lightning-bolt:nth-child(1) { --blast-angle: 0deg; animation-delay: 0.1s; }
-.lightning-bolt:nth-child(2) { --blast-angle: 60deg; animation-delay: 0.2s; }
-.lightning-bolt:nth-child(3) { --blast-angle: 120deg; animation-delay: 0.3s; }
-.lightning-bolt:nth-child(4) { --blast-angle: 180deg; animation-delay: 0.1s; }
-.lightning-bolt:nth-child(5) { --blast-angle: 240deg; animation-delay: 0.2s; }
-.lightning-bolt:nth-child(6) { --blast-angle: 300deg; animation-delay: 0.3s; }
+.lightning-bolt:nth-child(1) {
+  --blast-angle: 0deg;
+  animation-delay: 0.1s;
+}
+.lightning-bolt:nth-child(2) {
+  --blast-angle: 60deg;
+  animation-delay: 0.2s;
+}
+.lightning-bolt:nth-child(3) {
+  --blast-angle: 120deg;
+  animation-delay: 0.3s;
+}
+.lightning-bolt:nth-child(4) {
+  --blast-angle: 180deg;
+  animation-delay: 0.1s;
+}
+.lightning-bolt:nth-child(5) {
+  --blast-angle: 240deg;
+  animation-delay: 0.2s;
+}
+.lightning-bolt:nth-child(6) {
+  --blast-angle: 300deg;
+  animation-delay: 0.3s;
+}
 
 .stake-increase-text {
   position: absolute;
@@ -2712,7 +2996,7 @@ function pointsClass(sum: number): string {
   font-size: 1.1rem;
   font-weight: 900;
   text-align: center;
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(239, 68, 68, 0.8),
     0 4px 12px rgba(0, 0, 0, 0.3);
   animation: stake-text-explosive 1s ease-out forwards;
@@ -2801,5 +3085,4 @@ function pointsClass(sum: number): string {
 .stake-increase-leave-to {
   opacity: 0;
 }
-
 </style>

@@ -4,10 +4,10 @@ import { createClient } from 'redis'
 class SessionStorage {
   constructor() {
     this.isRedis = process.env.NODE_ENV === 'production' && process.env.REDIS_URL
-    
+
     if (this.isRedis) {
       this.client = createClient({ url: process.env.REDIS_URL })
-      this.client.on('error', (err) => console.error('Redis Client Error', err))
+      this.client.on('error', err => console.error('Redis Client Error', err))
       this.client.connect()
       console.log('📡 Using Redis for session storage')
     } else {

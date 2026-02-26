@@ -15,18 +15,18 @@ const joinSessionId = ref('')
 const errorMessage = ref('')
 const playerName = ref('')
 
-const canCreateSession = computed(() => 
-  multiplayer.isConnected && multiplayer.sessionStatus === 'idle'
+const canCreateSession = computed(
+  () => multiplayer.isConnected && multiplayer.sessionStatus === 'idle'
 )
 
 onMounted(async () => {
   // Check for invite link in URL
   const joinParam = route.query.join as string
-  
+
   if (joinParam) {
     joinSessionId.value = joinParam
     showModeSelection.value = true
-    
+
     // Automatically attempt to connect when join link is used
     try {
       await multiplayer.connect()
@@ -45,7 +45,7 @@ function startSinglePlayer() {
 async function showMultiplayerOptions() {
   showModeSelection.value = true
   errorMessage.value = ''
-  
+
   // Automatically connect when showing multiplayer options
   if (!multiplayer.isConnected && multiplayer.connectionStatus !== 'connecting') {
     try {
@@ -59,11 +59,11 @@ async function showMultiplayerOptions() {
 async function createMultiplayerGame() {
   try {
     errorMessage.value = ''
-    
+
     if (!multiplayer.isConnected) {
       await multiplayer.connect()
     }
-    
+
     await multiplayer.createSession(playerName.value || undefined)
     router.push('/lobby')
   } catch (error) {
@@ -79,11 +79,11 @@ async function joinMultiplayerGame() {
 
   try {
     errorMessage.value = ''
-    
+
     if (!multiplayer.isConnected) {
       await multiplayer.connect()
     }
-    
+
     await multiplayer.joinSession(joinSessionId.value.toUpperCase(), playerName.value || undefined)
     router.push('/lobby')
   } catch (error) {
@@ -91,13 +91,12 @@ async function joinMultiplayerGame() {
   }
 }
 
-
 function backToMain() {
   showModeSelection.value = false
   joiningSession.value = false
   joinSessionId.value = ''
   errorMessage.value = ''
-  
+
   // Clear URL parameter
   if (route.query.join) {
     router.replace('/')
@@ -131,7 +130,6 @@ function viewStatistics() {
 
     <!-- Multiplayer options -->
     <main v-else class="multiplayer-options">
-
       <div v-if="joiningSession" class="joining-message">
         <h2>Joining Session...</h2>
         <p>Attempting to join session: {{ joinSessionId }}</p>
@@ -140,14 +138,20 @@ function viewStatistics() {
       <div v-else class="options-container">
         <h2 v-if="joinSessionId">Join Game: {{ joinSessionId }}</h2>
         <h2 v-else>Multiplayer Options</h2>
-        
+
         <!-- Connection status -->
         <div class="connection-status" :class="`status-${multiplayer.connectionStatus}`">
           <span class="status-indicator"></span>
           <span class="status-text">
-            {{ multiplayer.connectionStatus === 'connected' ? 'Connected' : 
-               multiplayer.connectionStatus === 'connecting' ? 'Connecting...' :
-               multiplayer.connectionStatus === 'error' ? 'Connection Error' : 'Disconnected' }}
+            {{
+              multiplayer.connectionStatus === 'connected'
+                ? 'Connected'
+                : multiplayer.connectionStatus === 'connecting'
+                  ? 'Connecting...'
+                  : multiplayer.connectionStatus === 'error'
+                    ? 'Connection Error'
+                    : 'Disconnected'
+            }}
           </span>
         </div>
 
@@ -155,20 +159,20 @@ function viewStatistics() {
           <!-- Player Name Input -->
           <div class="action-group player-name-group">
             <label for="playerName" class="name-label">Your Name (Optional)</label>
-            <input 
+            <input
               id="playerName"
-              v-model="playerName" 
-              type="text" 
+              v-model="playerName"
+              type="text"
               placeholder="Enter your name..."
               class="name-input"
               maxlength="20"
-            >
+            />
           </div>
 
           <!-- Create session -->
           <div v-if="!joinSessionId" class="action-group">
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="btn btn-primary"
               @click="createMultiplayerGame"
               :disabled="!canCreateSession"
@@ -181,16 +185,16 @@ function viewStatistics() {
           <!-- Join session -->
           <div class="action-group">
             <div class="join-form">
-              <input 
-                v-model="joinSessionId" 
-                type="text" 
+              <input
+                v-model="joinSessionId"
+                type="text"
                 placeholder="Enter session code (e.g. ABC123)"
                 class="session-input"
                 maxlength="6"
                 @input="joinSessionId = joinSessionId.toUpperCase()"
-              >
-              <button 
-                type="button" 
+              />
+              <button
+                type="button"
                 class="btn btn-primary"
                 @click="joinMultiplayerGame"
                 :disabled="!multiplayer.isConnected"
@@ -199,16 +203,20 @@ function viewStatistics() {
               </button>
             </div>
             <p class="action-description">
-              {{ joinSessionId ? 'Enter your name above (optional) and join the game' : 'Join a friend\'s game using their code' }}
+              {{
+                joinSessionId
+                  ? 'Enter your name above (optional) and join the game'
+                  : "Join a friend's game using their code"
+              }}
             </p>
-            
+
             <!-- Quick join button for invite links -->
-            <div v-if="joinSessionId && multiplayer.isConnected" style="margin-top: 0.5rem;">
-              <button 
-                type="button" 
+            <div v-if="joinSessionId && multiplayer.isConnected" style="margin-top: 0.5rem">
+              <button
+                type="button"
                 class="btn btn-success"
                 @click="joinMultiplayerGame"
-                style="font-size: 0.9rem; padding: 0.4rem 1rem;"
+                style="font-size: 0.9rem; padding: 0.4rem 1rem"
               >
                 🚀 Quick Join {{ joinSessionId }}
               </button>
@@ -323,7 +331,6 @@ function viewStatistics() {
   background: rgb(34, 197, 94);
 }
 
-
 .status-connecting .status-indicator {
   background: rgb(249, 115, 22);
   animation: pulse 2s infinite;
@@ -335,8 +342,13 @@ function viewStatistics() {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Multiplayer Actions */
@@ -453,7 +465,10 @@ function viewStatistics() {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    filter var(--transition-fast);
   min-width: 140px;
 }
 
@@ -497,20 +512,20 @@ function viewStatistics() {
   .home {
     padding: 1rem;
   }
-  
+
   .options-container {
     padding: 1.5rem;
   }
-  
+
   .join-form {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .session-input {
     min-width: 200px;
   }
-  
+
   .multiplayer-actions {
     gap: 1rem;
   }

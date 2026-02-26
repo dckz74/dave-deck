@@ -15,7 +15,13 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^20.10.0",
-    "@types/uuid": "^9.0.7"
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "eslint-plugin-vue": "^10.8.0",
+    "vue-eslint-parser": "^10.4.0"
   }
 }

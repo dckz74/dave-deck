@@ -31,11 +31,17 @@ export function evaluateRound(
   } else if (playerBust) {
     winner = 'opponent'
     lifeLost = 'player'
-    lifeAmount = Math.max(0, 1 + stakeModifier - (lifeLost === 'player' ? shieldPlayer : shieldOpponent))
+    lifeAmount = Math.max(
+      0,
+      1 + stakeModifier - (lifeLost === 'player' ? shieldPlayer : shieldOpponent)
+    )
   } else if (opponentBust) {
     winner = 'player'
     lifeLost = 'opponent'
-    lifeAmount = Math.max(0, 1 + stakeModifier - (lifeLost === 'opponent' ? shieldOpponent : shieldPlayer))
+    lifeAmount = Math.max(
+      0,
+      1 + stakeModifier - (lifeLost === 'opponent' ? shieldOpponent : shieldPlayer)
+    )
   } else if (playerSum > opponentSum) {
     winner = 'player'
     lifeLost = 'opponent'

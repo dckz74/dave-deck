@@ -82,7 +82,8 @@ export const CHIP_DEFS: Record<ChipKind, ChipDef> = {
     kind: ChipKind.SwapCards,
     name: 'Karten tauschen',
     shortName: 'Tausch',
-    description: 'Tauscht deine zuletzt gezogene Karte mit der zuletzt gezogenen Karte des Gegners.',
+    description:
+      'Tauscht deine zuletzt gezogene Karte mit der zuletzt gezogenen Karte des Gegners.',
   },
   [ChipKind.StakePlus1]: {
     kind: ChipKind.StakePlus1,
@@ -114,20 +115,23 @@ export const CHIP_DEFS: Record<ChipKind, ChipDef> = {
     kind: ChipKind.PerfectDraw,
     name: 'Perfect Draw',
     shortName: 'Perfect',
-    description: 'Zieht die für dich beste Karte, wenn noch verfügbar (z. B. bei 13 und Limit 21 die 8).',
+    description:
+      'Zieht die für dich beste Karte, wenn noch verfügbar (z. B. bei 13 und Limit 21 die 8).',
   },
   [ChipKind.Shield]: {
     kind: ChipKind.Shield,
     name: 'Schild',
     shortName: 'Schild',
-    description: 'Reduziert das Leben, das du bei deiner nächsten Niederlage verlierst, um 1. Stapelbar.',
+    description:
+      'Reduziert das Leben, das du bei deiner nächsten Niederlage verlierst, um 1. Stapelbar.',
     value: 1,
   },
   [ChipKind.ShieldPlus]: {
     kind: ChipKind.ShieldPlus,
     name: 'Schild+',
     shortName: 'Schild+',
-    description: 'Reduziert das Leben, das du bei deiner nächsten Niederlage verlierst, um 2. Stapelbar.',
+    description:
+      'Reduziert das Leben, das du bei deiner nächsten Niederlage verlierst, um 2. Stapelbar.',
     value: 2,
   },
 }

@@ -21,7 +21,7 @@ function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes % 60}m`
   } else if (minutes > 0) {
@@ -43,7 +43,7 @@ const chipUsageStats = computed(() => {
       chipKind: chipKind as ChipKind,
       name: CHIP_DEFS[chipKind as ChipKind].name,
       shortName: CHIP_DEFS[chipKind as ChipKind].shortName,
-      usage
+      usage,
     }))
     .sort((a, b) => b.usage - a.usage)
     .filter(item => item.usage > 0)
@@ -53,7 +53,7 @@ const chipUsageStats = computed(() => {
 const quickAchievementStats = computed(() => ({
   unlockedCount: achievementStore.unlockedCount,
   totalCount: achievementStore.totalAchievements,
-  completionRate: achievementStore.completionPercentage
+  completionRate: achievementStore.completionPercentage,
 }))
 </script>
 
@@ -64,24 +64,28 @@ const quickAchievementStats = computed(() => ({
         ← Zurück
       </button>
       <h1>{{ activeTab === 'stats' ? 'Statistiken' : 'Erfolge' }}</h1>
-      <p class="stats-subtitle">{{ activeTab === 'stats' ? 'Deine Dave Deck Performance' : 'Deine Errungenschaften' }}</p>
-      
+      <p class="stats-subtitle">
+        {{ activeTab === 'stats' ? 'Deine Dave Deck Performance' : 'Deine Errungenschaften' }}
+      </p>
+
       <!-- Tab Navigation -->
       <div class="tab-navigation">
-        <button 
+        <button
           type="button"
           :class="['tab-button', { 'tab-button--active': activeTab === 'stats' }]"
           @click="activeTab = 'stats'"
         >
           📊 Statistiken
         </button>
-        <button 
+        <button
           type="button"
           :class="['tab-button', { 'tab-button--active': activeTab === 'achievements' }]"
           @click="activeTab = 'achievements'"
         >
           🏆 Erfolge
-          <span class="achievement-count">{{ quickAchievementStats.unlockedCount }}/{{ quickAchievementStats.totalCount }}</span>
+          <span class="achievement-count"
+            >{{ quickAchievementStats.unlockedCount }}/{{ quickAchievementStats.totalCount }}</span
+          >
         </button>
       </div>
     </header>
@@ -178,10 +182,10 @@ const quickAchievementStats = computed(() => ({
             <div class="metric-label">Lieblings-Chip</div>
           </div>
         </div>
-        
+
         <div v-if="chipUsageStats.length > 0" class="chip-usage-list">
-          <div 
-            v-for="chip in chipUsageStats.slice(0, 5)" 
+          <div
+            v-for="chip in chipUsageStats.slice(0, 5)"
             :key="chip.chipKind"
             class="chip-usage-item"
           >
@@ -244,9 +248,7 @@ const quickAchievementStats = computed(() => ({
         <h2 class="stats-card-title">
           <span class="stats-icon">🏅</span>
           Erfolge
-          <button type="button" class="view-all-btn">
-            Alle ansehen →
-          </button>
+          <button type="button" class="view-all-btn">Alle ansehen →</button>
         </h2>
         <div class="achievement-summary">
           <div class="achievement-summary-stat">
@@ -258,14 +260,16 @@ const quickAchievementStats = computed(() => ({
             <div class="achievement-summary-label">Gesamt</div>
           </div>
           <div class="achievement-summary-stat">
-            <div class="achievement-summary-value">{{ Math.round(quickAchievementStats.completionRate) }}%</div>
+            <div class="achievement-summary-value">
+              {{ Math.round(quickAchievementStats.completionRate) }}%
+            </div>
             <div class="achievement-summary-label">Vollständigkeit</div>
           </div>
         </div>
         <div class="achievement-progress">
           <div class="achievement-progress-bar">
-            <div 
-              class="achievement-progress-fill" 
+            <div
+              class="achievement-progress-fill"
               :style="{ width: `${quickAchievementStats.completionRate}%` }"
             ></div>
           </div>
@@ -277,7 +281,6 @@ const quickAchievementStats = computed(() => ({
     <div v-if="activeTab === 'achievements'" class="achievements-content">
       <AchievementGallery />
     </div>
-
   </div>
 </template>
 
@@ -387,7 +390,9 @@ const quickAchievementStats = computed(() => ({
   padding: 1.5rem;
   box-shadow: var(--shadow);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .stats-card:hover {
@@ -579,35 +584,33 @@ const quickAchievementStats = computed(() => ({
   font-size: 0.9rem;
 }
 
-
-
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .statistics-view {
     padding: 1rem 0.5rem;
   }
-  
+
   .stats-header h1 {
     font-size: 2rem;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .stats-card {
     padding: 1rem;
   }
-  
+
   .stats-metrics {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .metric-value {
     font-size: 1.5rem;
   }
-  
+
   .metric--highlight .metric-value {
     font-size: 1.8rem;
   }
