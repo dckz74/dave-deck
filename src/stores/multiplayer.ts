@@ -30,6 +30,10 @@ export interface GameAction {
   type: 'hit' | 'skip' | 'chip'
   data?: any
   gameState: GameState
+  roundResult?: { winner: string | 'draw'; lifeLost: string | null; lifeAmount: number }
+  roundAnimation?: { type: string; target?: string; amount?: number; data?: any }
+  roundResultAnimation?: { type: string; target?: string; amount?: number; data?: any }
+  chipAnimation?: { type: string; data?: any }
 }
 
 const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'http://localhost:3001'

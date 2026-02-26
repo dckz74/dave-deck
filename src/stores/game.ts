@@ -185,10 +185,42 @@ export const useGameStore = defineStore('game', () => {
 
       // Send state update to multiplayer opponent
       if (isMultiplayer.value) {
+        // Determine additional round result animation if round ended
+        let additionalAnimation = null
+        if (result.roundResult) {
+          if (result.roundResult.winner === 'draw') {
+            additionalAnimation = { type: 'phew_draw' }
+          } else if (result.roundResult.lifeLost && result.roundResult.lifeAmount === 0) {
+            // Shield blocked attack
+            const originalAttack = 1 + state.value.round.stakeModifier
+            additionalAnimation = {
+              type: 'shield_block',
+              target: result.roundResult.lifeLost === 'player' ? 'opponent' : 'player', // Flip perspective for opponent
+              amount: originalAttack,
+              data: { blocked: true }
+            }
+          } else if (result.roundResult.lifeLost && result.roundResult.lifeAmount > 0) {
+            // Life loss animation
+            const originalAttack = 1 + state.value.round.stakeModifier
+            additionalAnimation = {
+              type: 'heart_attack',
+              target: result.roundResult.lifeLost === 'player' ? 'opponent' : 'player', // Flip perspective for opponent
+              amount: result.roundResult.lifeAmount,
+              data: { originalAttack }
+            }
+          }
+        }
+
         multiplayer.sendGameAction({
           type: 'hit',
           gameState: state.value,
           roundResult: result.roundResult, // Include round result for animation sync
+          roundAnimation: {
+            type: 'card_draw',
+            target: 'opponent', // From opponent's perspective, the OTHER player drew
+            data: { value: newCard.value },
+          },
+          ...(additionalAnimation ? { roundResultAnimation: additionalAnimation } : {}), // Include round result animation if exists
         })
       }
     }
@@ -234,9 +266,37 @@ export const useGameStore = defineStore('game', () => {
 
     // Send state update to multiplayer opponent
     if (isMultiplayer.value) {
+      // Determine round result animation for opponent
+      let roundAnimation = null
+      if (roundResult) {
+        if (roundResult.winner === 'draw') {
+          roundAnimation = { type: 'phew_draw' }
+        } else if (roundResult.lifeLost && roundResult.lifeAmount === 0) {
+          // Shield blocked attack
+          const originalAttack = 1 + state.value.round.stakeModifier
+          roundAnimation = {
+            type: 'shield_block',
+            target: roundResult.lifeLost === 'player' ? 'opponent' : 'player', // Flip perspective for opponent
+            amount: originalAttack,
+            data: { blocked: true }
+          }
+        } else if (roundResult.lifeLost && roundResult.lifeAmount > 0) {
+          // Life loss animation
+          const originalAttack = 1 + state.value.round.stakeModifier
+          roundAnimation = {
+            type: 'heart_attack',
+            target: roundResult.lifeLost === 'player' ? 'opponent' : 'player', // Flip perspective for opponent
+            amount: roundResult.lifeAmount,
+            data: { originalAttack }
+          }
+        }
+      }
+
       multiplayer.sendGameAction({
         type: 'skip',
         gameState: next,
+        roundResult: roundResult, // Include round result for animation sync
+        ...(roundAnimation ? { roundAnimation } : {}), // Include round result animation if exists
       })
     }
 
@@ -277,10 +337,12 @@ export const useGameStore = defineStore('game', () => {
 
       // Send state update to multiplayer opponent
       if (isMultiplayer.value) {
+        const animationType = getAnimationType(chip, prevState, next)
         multiplayer.sendGameAction({
           type: 'chip',
           data: { chip },
           gameState: next,
+          chipAnimation: animationType,
         })
       }
     }
@@ -418,6 +480,7 @@ export const useGameStore = defineStore('game', () => {
         return 800
     }
   }
+
 
   function triggerRoundResultAnimation(roundResult: {
     winner: string
@@ -671,6 +734,102 @@ export const useGameStore = defineStore('game', () => {
       if (gameMode.value === 'multiplayer') {
         syncGameState(data.gameState)
 
+        // Handle animations from opponent actions
+        if (data.action === 'hit' && data.roundAnimation) {
+          // Trigger card draw animation for opponent's hit
+          currentRoundAnimation.value = data.roundAnimation
+          setTimeout(() => {
+            currentRoundAnimation.value = null
+            // If there's a round result, trigger the proper animation sequence and record stats
+            if (data.roundResult) {
+              // Record statistics for the receiving player's perspective
+              const opponentSum = state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
+              const wasAtLimit = opponentSum === state.value.round.limit
+              const wasBust = opponentSum > state.value.round.limit
+
+              statistics.recordRoundResult(
+                data.roundResult.winner,
+                opponentSum,
+                wasAtLimit,
+                wasBust,
+                state.value.round.limit,
+                state.value.player.hand.reduce((s, c) => s + c.value, 0)
+              )
+
+              // Check if game ended
+              if (state.value.phase === 'game_over') {
+                recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+              } else {
+                // Trigger round result animation
+                triggerRoundResultAnimation(data.roundResult)
+              }
+            }
+          }, 1200) // Match animation duration
+        } else if (data.action === 'skip' && data.roundResult) {
+          // Handle round result for opponent's skip
+          // Record statistics for the receiving player's perspective
+          const playerSum = state.value.player.hand.reduce((s, c) => s + c.value, 0)
+          const wasAtLimit = playerSum === state.value.round.limit
+          const wasBust = playerSum > state.value.round.limit
+
+          statistics.recordRoundResult(
+            data.roundResult.winner,
+            playerSum,
+            wasAtLimit,
+            wasBust,
+            state.value.round.limit,
+            state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
+          )
+
+          // Check if game ended
+          if (state.value.phase === 'game_over') {
+            recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+          } else {
+            // Trigger round result animation for opponent's skip
+            triggerRoundResultAnimation(data.roundResult)
+          }
+        }
+
+        // Handle round results for actions that didn't have animations (fallback)
+        if ((data.action === 'hit' || data.action === 'skip') && data.roundResult && !data.roundAnimation) {
+          // Record statistics for actions without animations
+          if (data.action === 'hit') {
+            const opponentSum = state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
+            const wasAtLimit = opponentSum === state.value.round.limit
+            const wasBust = opponentSum > state.value.round.limit
+
+            statistics.recordRoundResult(
+              data.roundResult.winner,
+              opponentSum,
+              wasAtLimit,
+              wasBust,
+              state.value.round.limit,
+              state.value.player.hand.reduce((s, c) => s + c.value, 0)
+            )
+          } else {
+            const playerSum = state.value.player.hand.reduce((s, c) => s + c.value, 0)
+            const wasAtLimit = playerSum === state.value.round.limit
+            const wasBust = playerSum > state.value.round.limit
+
+            statistics.recordRoundResult(
+              data.roundResult.winner,
+              playerSum,
+              wasAtLimit,
+              wasBust,
+              state.value.round.limit,
+              state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
+            )
+          }
+
+          // Check if game ended
+          if (state.value.phase === 'game_over') {
+            recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+          } else {
+            // Trigger round result animation even without roundAnimation data
+            triggerRoundResultAnimation(data.roundResult)
+          }
+        }
+
         // Show opponent feedback for chip usage with actual player name
         if (data.action === 'chip' && data.data?.chip) {
           const chipName = CHIP_DEFS[data.data.chip.kind as keyof typeof CHIP_DEFS].name
@@ -681,7 +840,21 @@ export const useGameStore = defineStore('game', () => {
             lastChipFeedback.value = null
             chipFeedbackTimer = null
           }, CHIP_FEEDBACK_DURATION_MS)
+
+          // Trigger chip animation for opponent's chip usage
+          if (data.chipAnimation) {
+            if (!isAnimating.value) {
+              isAnimating.value = true
+              currentChipAnimation.value = data.chipAnimation
+              const duration = getAnimationDuration(data.chipAnimation.type)
+              setTimeout(() => {
+                currentChipAnimation.value = null
+                isAnimating.value = false
+              }, duration)
+            }
+          }
         }
+
       }
     })
 
