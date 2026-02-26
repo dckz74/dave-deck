@@ -1,0 +1,23 @@
+# Build outputs
+dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.d.ts
+public/sw.js
+public/workbox-*.js
+
+# Version control
+.git/
+
+# Cache directories
+.vite/
+.cache/
+
+# Server build
+server/dist/
+server/node_modules/

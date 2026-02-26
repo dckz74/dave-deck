@@ -10,7 +10,7 @@ import { getOpponentAction } from '@/game/ai'
 import { CHIP_DEFS } from '@/game/chips'
 import { useStatisticsStore } from '@/stores/statistics'
 import { useMultiplayerStore } from '@/stores/multiplayer'
-import type { GameState, Chip } from '@/game/types'
+import type { GameState, Chip, PlayerId } from '@/game/types'
 
 export type GameMode = 'single-player' | 'multiplayer'
 
@@ -37,6 +37,7 @@ export const useGameStore = defineStore('game', () => {
 
   // Statistics store for tracking game metrics
   const statistics = useStatisticsStore()
+  const gameStatsRecorded = ref(false)
 
   // Multiplayer store for WebSocket communication
   const multiplayer = useMultiplayerStore()
@@ -64,6 +65,7 @@ export const useGameStore = defineStore('game', () => {
   function resetGame() {
     state.value = createInitialState()
     lastChipFeedback.value = null
+    gameStatsRecorded.value = false
     if (chipFeedbackTimer) clearTimeout(chipFeedbackTimer)
 
     // Start tracking game time
@@ -81,6 +83,7 @@ export const useGameStore = defineStore('game', () => {
       state.value = createInitialState()
     }
     gameMode.value = 'multiplayer'
+    gameStatsRecorded.value = false
 
     // Start tracking game time
     statistics.startGame()
@@ -96,6 +99,14 @@ export const useGameStore = defineStore('game', () => {
     if (gameMode.value === 'multiplayer') {
       state.value = newState
     }
+  }
+
+  function recordGameEndStatistics(gameWinner: PlayerId, playerLives: number, mode: GameMode) {
+    // Prevent recording statistics multiple times for the same game
+    if (gameStatsRecorded.value) return
+    
+    gameStatsRecorded.value = true
+    statistics.endGame(gameWinner, playerLives, mode)
   }
 
   function doHit() {
@@ -123,7 +134,7 @@ export const useGameStore = defineStore('game', () => {
 
         // Check if game ended
         if (state.value.phase === 'game_over') {
-          statistics.endGame(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+          recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
           return
         }
 
@@ -185,7 +196,7 @@ export const useGameStore = defineStore('game', () => {
 
       // Check if game ended
       if (state.value.phase === 'game_over') {
-        statistics.endGame(state.value.gameWinner!, state.value.player.lives)
+        recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
 
         // Send game over to multiplayer opponent
         if (isMultiplayer.value) {
@@ -560,7 +571,7 @@ export const useGameStore = defineStore('game', () => {
           )
 
           if (state.value.phase === 'game_over') {
-            statistics.endGame(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+            recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
             return
           }
 
@@ -602,7 +613,7 @@ export const useGameStore = defineStore('game', () => {
 
       // Check if game ended
       if (state.value.phase === 'game_over') {
-        statistics.endGame(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+        recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
         return
       }
 
@@ -702,7 +713,7 @@ export const useGameStore = defineStore('game', () => {
           syncGameState(data.gameState)
 
           // Make sure statistics are updated
-          statistics.endGame(
+          recordGameEndStatistics(
             data.gameState.gameWinner!,
             data.gameState.player.lives,
             gameMode.value
