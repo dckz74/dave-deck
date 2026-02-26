@@ -642,11 +642,12 @@ function pointsClass(sum: number): string {
 
 /* Attack value indicator styling */
 .attack-indicator {
-  position: relative;
+  position: absolute;
+  top: 35%;
+  right: 10%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0.5rem 0;
   z-index: 5;
 }
 
@@ -947,6 +948,7 @@ function pointsClass(sum: number): string {
 }
 
 .center {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
