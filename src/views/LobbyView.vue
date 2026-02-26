@@ -43,7 +43,7 @@ onMounted(() => {
   game.setupMultiplayerListeners()
   
   // Listen for game start event
-  multiplayer.onGameStateUpdate((data) => {
+  multiplayer.onGameStateUpdate((_data) => {
     // This will handle game state updates during the game
   })
 })
@@ -253,7 +253,7 @@ onUnmounted(() => {
                   :value="inviteUrl" 
                   readonly 
                   class="url-input"
-                  @focus="$event.target.select()"
+                  @focus="($event.target as HTMLInputElement)?.select()"
                 >
               </div>
             </div>
@@ -362,28 +362,13 @@ onUnmounted(() => {
   border-radius: 50%;
 }
 
-.status-connected {
-  background: rgba(34, 197, 94, 0.1);
-  color: rgb(34, 197, 94);
-}
-
 .status-connected .status-indicator {
   background: rgb(34, 197, 94);
-}
-
-.status-connecting {
-  background: rgba(249, 115, 22, 0.1);
-  color: rgb(249, 115, 22);
 }
 
 .status-connecting .status-indicator {
   background: rgb(249, 115, 22);
   animation: pulse 2s infinite;
-}
-
-.status-error, .status-disconnected {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
 }
 
 .status-error .status-indicator,

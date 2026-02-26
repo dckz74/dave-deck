@@ -588,7 +588,7 @@ export const useGameStore = defineStore('game', () => {
         
         // Show opponent feedback for chip usage with actual player name
         if (data.action === 'chip' && data.data?.chip) {
-          const chipName = CHIP_DEFS[data.data.chip.kind].name
+          const chipName = CHIP_DEFS[data.data.chip.kind as keyof typeof CHIP_DEFS].name
           const opponentName = data.playerName || 'Gegner'
           lastChipFeedback.value = `${opponentName} verwendet: ${chipName}!`
           if (chipFeedbackTimer) clearTimeout(chipFeedbackTimer)

@@ -366,7 +366,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     })
 
     // Player disconnected
-    socket.value.on('player-disconnected', (data) => {
+    socket.value.on('player-disconnected', (_data) => {
       if (currentSession.value) {
         // If we were in a finished game state, end the session completely
         if (sessionStatus.value === 'finished') {
@@ -430,7 +430,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     })
 
     // Game ended
-    socket.value.on('game-ended', (data) => {
+    socket.value.on('game-ended', (_data) => {
       sessionStatus.value = 'finished'
     })
 

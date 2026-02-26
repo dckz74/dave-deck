@@ -91,21 +91,6 @@ async function joinMultiplayerGame() {
   }
 }
 
-async function connectAndJoinSession(sessionId: string) {
-  try {
-    errorMessage.value = ''
-    
-    if (!multiplayer.isConnected) {
-      await multiplayer.connect()
-    }
-    
-    await multiplayer.joinSession(sessionId.toUpperCase(), playerName.value || undefined)
-    router.push('/lobby')
-  } catch (error) {
-    errorMessage.value = `Failed to join session: ${error}`
-    joiningSession.value = false
-  }
-}
 
 function backToMain() {
   showModeSelection.value = false
@@ -334,28 +319,14 @@ function viewStatistics() {
   border-radius: 50%;
 }
 
-.status-connected {
-  background: rgba(34, 197, 94, 0.1);
-  color: rgb(34, 197, 94);
-}
-
 .status-connected .status-indicator {
   background: rgb(34, 197, 94);
 }
 
-.status-connecting {
-  background: rgba(249, 115, 22, 0.1);
-  color: rgb(249, 115, 22);
-}
 
 .status-connecting .status-indicator {
   background: rgb(249, 115, 22);
   animation: pulse 2s infinite;
-}
-
-.status-error, .status-disconnected {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
 }
 
 .status-error .status-indicator,
