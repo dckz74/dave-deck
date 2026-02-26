@@ -843,6 +843,11 @@ function pointsClass(sum: number): string {
   min-width: 120px;
 }
 
+.player-section:first-child {
+  margin-top: -50px;
+}
+
+
 .cards-section {
   display: flex;
   justify-content: center;
@@ -868,7 +873,7 @@ function pointsClass(sum: number): string {
 
 .lives {
   font-size: 1.2rem;
-  position: relative;
+  position: relative
 }
 
 .lives--protected .lives-hearts {
@@ -886,10 +891,12 @@ function pointsClass(sum: number): string {
 
 .player-hand-row {
   flex-direction: column;
+  margin-top: -65px;
 }
 
 .enemy-hand-row {
   flex-direction: column-reverse;
+  margin-top: 70px;
 }
 
 .hand {
@@ -1031,7 +1038,7 @@ function pointsClass(sum: number): string {
 .actions {
   display: flex;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: -20px;
   min-height: 44px;
   align-items: center;
   justify-content: center;
