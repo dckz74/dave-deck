@@ -1,6 +1,6 @@
 # Dave Deck
 
-Black-Jack-artiges Kartenspiel mit Karten 1–11, einem gemeinsamen Deck und Chips.  
+Black-Jack-artiges Kartenspiel mit Karten von 1 bis 11, einem gemeinsamen Deck und Chips.  
 Regeln und Scope: **rules.md**.
 
 ## Tech-Stack
