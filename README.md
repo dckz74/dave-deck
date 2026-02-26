@@ -7,8 +7,6 @@ Regeln und Scope: **rules.md**.
 
 - **Frontend**: Vue 3 + TypeScript + Vite + PWA
 - **Backend**: Node.js + Express + Socket.IO (multiplayer)
-- **Storage**: Redis (production) / In-memory (development)
-- **Hosting**: Vercel (frontend) + Koyeb (backend)
 
 ## Quick Start
 
