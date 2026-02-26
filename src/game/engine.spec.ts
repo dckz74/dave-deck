@@ -15,11 +15,12 @@ describe('engine', () => {
 
   it('hit: draws card, switches turn', () => {
     const s = createInitialState()
-    const next = hit(s, 'player')
-    expect(next).not.toBeNull()
-    expect(next!.player.hand).toHaveLength(2)
-    expect(next!.round.deck).toHaveLength(8)
-    expect(next!.round.currentTurn).toBe('opponent')
+    const result = hit(s, 'player')
+    expect(result).not.toBeNull()
+    expect(result!.state.player.hand).toHaveLength(2)
+    expect(result!.state.round.deck).toHaveLength(8)
+    expect(result!.state.round.currentTurn).toBe('opponent')
+    expect(result!.roundResult).toBeUndefined() // No round end with cards remaining
   })
 
   it('skip: first skip switches turn', () => {
@@ -77,5 +78,32 @@ describe('engine', () => {
     expect(nextRound.round.currentTurn).toBe('player')
     expect(nextRound.player.hasHiddenCard).toBe(true)
     expect(nextRound.opponent.hasHiddenCard).toBe(true)
+  })
+
+  it('hit: round ends automatically when last card is drawn', () => {
+    const s = createInitialState()
+    let current = s
+
+    // Draw all remaining cards except the last one
+    for (let i = 0; i < 8; i++) {
+      const result = hit(current, current.round.currentTurn)
+      expect(result).not.toBeNull()
+      expect(result!.roundResult).toBeUndefined() // No round end yet
+      current = result!.state
+    }
+
+    // Verify we have 1 card left in deck
+    expect(current.round.deck).toHaveLength(1)
+    expect(current.phase).toBe('playing')
+
+    // Draw the last card - should automatically end the round
+    const finalResult = hit(current, current.round.currentTurn)
+    expect(finalResult).not.toBeNull()
+    expect(finalResult!.state.round.deck).toHaveLength(0) // Deck is empty
+    expect(finalResult!.roundResult).toBeDefined() // Round ended automatically
+    expect(finalResult!.state.phase).toBe('round_result') // Phase changed to round_result
+    expect(finalResult!.state.player.hasHiddenCard).toBe(false) // Cards revealed
+    expect(finalResult!.state.opponent.hasHiddenCard).toBe(false) // Cards revealed
+    expect(finalResult!.roundResult!.winner).toBeDefined()
   })
 })

@@ -61,6 +61,10 @@ export const useGameStore = defineStore('game', () => {
     }
     return !isAnimating.value && state.value.phase === 'playing'
   })
+  
+  const canHit = computed(() => {
+    return canTakeAction.value && state.value.round.deck.length > 0
+  })
 
   function resetGame() {
     state.value = createInitialState()
@@ -98,6 +102,8 @@ export const useGameStore = defineStore('game', () => {
     // Used when receiving game state updates from multiplayer opponent
     if (gameMode.value === 'multiplayer') {
       state.value = newState
+      // Note: Round ending is now handled automatically by the hit() function in the engine
+      // when the last card is drawn, so no manual intervention needed here
     }
   }
 
@@ -109,51 +115,18 @@ export const useGameStore = defineStore('game', () => {
     statistics.endGame(gameWinner, playerLives, mode)
   }
 
+
   function doHit() {
-    if (!canTakeAction.value) return // Block Hit during chip animations or if not player's turn
-
-    // Check if deck is empty before hitting
-    if (state.value.round.deck.length === 0) {
-      // Force round evaluation when deck is empty
-      const { state: next, roundResult } = skip(state.value, 'player')
-      state.value = next
-
-      if (roundResult) {
-        const playerSum = state.value.player.hand.reduce((s, c) => s + c.value, 0)
-        const wasAtLimit = playerSum === state.value.round.limit
-        const wasBust = playerSum > state.value.round.limit
-
-        statistics.recordRoundResult(
-          roundResult.winner,
-          playerSum,
-          wasAtLimit,
-          wasBust,
-          state.value.round.limit,
-          state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
-        )
-
-        // Check if game ended
-        if (state.value.phase === 'game_over') {
-          recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
-          return
-        }
-
-        // Trigger round result animation
-        setTimeout(() => {
-          triggerRoundResultAnimation(roundResult)
-        }, 100)
-      }
-      return
-    }
+    if (!canHit.value) return // Block Hit during chip animations, if not player's turn, or deck is empty
 
     const prevChipCount = state.value.player.chips.length
-    const next = hit(state.value, 'player')
-    if (next) {
+    const result = hit(state.value, 'player')
+    if (result) {
       // Check if a chip was received
-      const chipReceived = next.player.chips.length > prevChipCount
+      const chipReceived = result.state.player.chips.length > prevChipCount
 
       // Get the newly drawn card value
-      const newCard = next.player.hand[next.player.hand.length - 1]
+      const newCard = result.state.player.hand[result.state.player.hand.length - 1]
 
       // Trigger card draw animation
       currentRoundAnimation.value = {
@@ -167,15 +140,55 @@ export const useGameStore = defineStore('game', () => {
         currentRoundAnimation.value = null
       }, 1200) // Match animation duration
 
-      state.value = next
+      state.value = result.state
       // Track card drawn with chip information
       statistics.recordCardDrawn(chipReceived)
+
+      // Check if round ended due to empty deck
+      if (result.roundResult) {
+        const playerSum = state.value.player.hand.reduce((s, c) => s + c.value, 0)
+        const wasAtLimit = playerSum === state.value.round.limit
+        const wasBust = playerSum > state.value.round.limit
+
+        statistics.recordRoundResult(
+          result.roundResult.winner,
+          playerSum,
+          wasAtLimit,
+          wasBust,
+          state.value.round.limit,
+          state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
+        )
+
+        // Check if game ended
+        if (state.value.phase === 'game_over') {
+          recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+          
+          // Send game over to multiplayer opponent
+          if (isMultiplayer.value) {
+            multiplayer.endGame({
+              gameWinner: state.value.gameWinner,
+              finalLives: {
+                player: state.value.player.lives,
+                opponent: state.value.opponent.lives,
+              },
+              gameState: state.value,
+            })
+          }
+          return
+        }
+
+        // Trigger round result animation
+        setTimeout(() => {
+          triggerRoundResultAnimation(result.roundResult!)
+        }, 100)
+      }
 
       // Send state update to multiplayer opponent
       if (isMultiplayer.value) {
         multiplayer.sendGameAction({
           type: 'hit',
-          gameState: next,
+          gameState: state.value,
+          roundResult: result.roundResult, // Include round result for animation sync
         })
       }
     }
@@ -583,11 +596,37 @@ export const useGameStore = defineStore('game', () => {
       }
 
       const prevChipCount = state.value.opponent.chips.length
-      const next = hit(state.value, 'opponent')
-      if (next) {
-        const chipReceived = next.opponent.chips.length > prevChipCount
-        state.value = next
+      const result = hit(state.value, 'opponent')
+      if (result) {
+        const chipReceived = result.state.opponent.chips.length > prevChipCount
+        state.value = result.state
         statistics.recordCardDrawn(chipReceived)
+
+        // Check if round ended due to empty deck
+        if (result.roundResult) {
+          const opponentSum = state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
+          const wasAtLimit = opponentSum === state.value.round.limit
+          const wasBust = opponentSum > state.value.round.limit
+
+          statistics.recordRoundResult(
+            result.roundResult.winner,
+            opponentSum,
+            wasAtLimit,
+            wasBust,
+            state.value.round.limit,
+            state.value.player.hand.reduce((s, c) => s + c.value, 0)
+          )
+
+          if (state.value.phase === 'game_over') {
+            recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
+            return
+          }
+
+          setTimeout(() => {
+            triggerRoundResultAnimation(result.roundResult!)
+          }, 100)
+          return
+        }
       }
       return
     }
@@ -763,6 +802,7 @@ export const useGameStore = defineStore('game', () => {
     isPlayerTurn,
     isMultiplayer,
     canTakeAction,
+    canHit,
     lastChipFeedback,
     currentChipAnimation,
     currentRoundAnimation,

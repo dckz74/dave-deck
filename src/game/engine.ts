@@ -287,8 +287,8 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
   }
 }
 
-/** Hit: eine Karte ziehen, ggf. Chip bekommen, Zug Ende. */
-export function hit(state: GameState, playerId: PlayerId): GameState | null {
+/** Hit: eine Karte ziehen, ggf. Chip bekommen, Zug Ende. Wenn das Deck leer wird, Runde automatisch beenden. */
+export function hit(state: GameState, playerId: PlayerId): { state: GameState; roundResult?: { winner: PlayerId | 'draw'; lifeLost: PlayerId | null; lifeAmount: number } } | null {
   if (state.phase !== 'playing' || state.round.currentTurn !== playerId) return null
   const card = drawFromDeck(state.round.deck)
   if (!card) return null // Deck is empty - let caller handle this
@@ -297,9 +297,63 @@ export function hit(state: GameState, playerId: PlayerId): GameState | null {
   p.hand.push(card)
   const newChip = maybeGrantChip()
   if (newChip) p.chips.push(newChip)
+  
+  // Check if deck is now empty after drawing - if so, end the round immediately
+  if (s.round.deck.length === 0) {
+    // Reveal hidden cards
+    s.player.hasHiddenCard = false
+    s.opponent.hasHiddenCard = false
+    
+    const playerSum = s.player.hand.reduce((sum, card) => sum + card.value, 0)
+    const opponentSum = s.opponent.hand.reduce((sum, card) => sum + card.value, 0)
+    
+    const result = evaluateRound(
+      playerSum,
+      opponentSum,
+      s.round.limit,
+      s.round.stakeModifier,
+      s.round.shieldPlayer,
+      s.round.shieldOpponent
+    )
+    
+    if (result.lifeLost && result.lifeAmount > 0) {
+      const next = applyLifeLoss(s, result.lifeLost, result.lifeAmount)
+      next.lastRoundWinner = result.winner
+      if (next.phase === 'game_over') {
+        return {
+          state: next,
+          roundResult: {
+            winner: result.winner,
+            lifeLost: result.lifeLost,
+            lifeAmount: result.lifeAmount,
+          },
+        }
+      }
+      next.phase = 'round_result'
+      return {
+        state: next,
+        roundResult: {
+          winner: result.winner,
+          lifeLost: result.lifeLost,
+          lifeAmount: result.lifeAmount,
+        },
+      }
+    }
+    s.lastRoundWinner = result.winner
+    s.phase = 'round_result'
+    return {
+      state: s,
+      roundResult: {
+        winner: result.winner,
+        lifeLost: result.lifeLost,
+        lifeAmount: result.lifeAmount,
+      },
+    }
+  }
+  
   s.round.currentTurn = playerId === 'player' ? 'opponent' : 'player'
   s.round.lastMoveWasSkip = false
-  return s
+  return { state: s }
 }
 
 /** Skip: Zug Ende. Wenn Gegner zuletzt auch Skip gemacht hat → Runde auswerten. */
