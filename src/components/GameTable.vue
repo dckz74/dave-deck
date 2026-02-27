@@ -46,6 +46,9 @@ const opponentName = computed(() => {
   return 'Gegner'
 })
 
+// Animation events from shared game state (works in both single player and multiplayer)
+const animationEvents = computed(() => game.animationEvents)
+
 function pointsClass(sum: number): string {
   if (sum > limit.value) return 'points--bust'
   if (sum === limit.value) return 'points--perfect'
@@ -67,7 +70,7 @@ function pointsClass(sum: number): string {
 
       <!-- Phew animation for draws -->
       <Transition name="phew-draw">
-        <div v-if="game.currentRoundAnimation?.type === 'phew_draw'" class="phew-draw-effect">
+        <div v-if="game.lastRoundWinner === 'draw' && game.phase === 'round_result'" class="phew-draw-effect">
           <div class="phew-emoji">😅</div>
           <div class="phew-text">Unentschieden!</div>
           <div class="relief-sparkles">
@@ -103,10 +106,10 @@ function pointsClass(sum: number): string {
               <Transition name="shield-activate">
                 <div
                   v-if="
-                    game.currentChipAnimation?.type === 'shield_activate' &&
-                    game.currentChipAnimation?.data?.newShield >
-                      (game.currentChipAnimation?.data?.oldShield || 0) &&
-                    game.currentChipAnimation?.data?.target === 'opponent'
+                    animationEvents?.recentShieldGain &&
+                    animationEvents.recentShieldGain.newValue >
+                      animationEvents.recentShieldGain.oldValue &&
+                    animationEvents.recentShieldGain.target === 'opponent'
                   "
                   class="shield-activation-effect"
                 >
@@ -115,8 +118,9 @@ function pointsClass(sum: number): string {
                   </div>
                   <div class="shield-level-indicator">
                     +{{
-                      (game.currentChipAnimation?.data?.newShield || 1) -
-                      (game.currentChipAnimation?.data?.oldShield || 0)
+                      animationEvents?.recentShieldGain
+                        ? animationEvents.recentShieldGain.newValue - animationEvents.recentShieldGain.oldValue
+                        : 1
                     }}
                     🛡️
                   </div>
@@ -126,42 +130,26 @@ function pointsClass(sum: number): string {
               <!-- Heart attack animation for opponent -->
               <Transition name="heart-attack">
                 <div
-                  v-if="
-                    game.currentRoundAnimation?.type === 'heart_attack' &&
-                    game.currentRoundAnimation?.target === 'opponent'
-                  "
+                  v-if="game.lastRoundWinner === 'player' && game.phase === 'round_result'"
                   class="heart-attack-effect"
                 >
                   <div class="hearts-breaking">
                     <span
-                      v-for="i in game.currentRoundAnimation?.amount || 1"
+                      v-for="i in 1"
                       :key="i"
                       class="breaking-heart"
                       >💔</span
                     >
                   </div>
                   <div class="attack-lightning">⚡</div>
-                  <div class="damage-number">-{{ game.currentRoundAnimation?.amount || 1 }}</div>
-                  <div
-                    v-if="
-                      game.currentRoundAnimation?.data?.originalAttack &&
-                      game.currentRoundAnimation.data.originalAttack >
-                        (game.currentRoundAnimation.amount || 0)
-                    "
-                    class="attack-value"
-                  >
-                    {{ game.currentRoundAnimation.data.originalAttack }} Angriff
-                  </div>
+                  <div class="damage-number">-1</div>
                 </div>
               </Transition>
 
               <!-- Shield blocking animation for opponent -->
               <Transition name="shield-block">
                 <div
-                  v-if="
-                    game.currentRoundAnimation?.type === 'shield_block' &&
-                    game.currentRoundAnimation?.target === 'opponent'
-                  "
+                  v-if="false"
                   class="shield-block-effect"
                 >
                   <div class="blocking-shield">🛡️</div>
@@ -218,23 +206,23 @@ function pointsClass(sum: number): string {
         <section class="center">
           <div
             class="limit"
-            :class="{ 'limit--changing': game.currentChipAnimation?.type === 'limit_change' }"
+            :class="{ 'limit--changing': !!animationEvents?.recentLimitChange }"
           >
             <span>Limit: {{ limit }}</span>
 
             <!-- Limit change animation -->
             <Transition name="limit-change">
               <div
-                v-if="game.currentChipAnimation?.type === 'limit_change'"
+                v-if="animationEvents?.recentLimitChange"
                 class="limit-change-effect"
               >
                 <div class="limit-sparkles">
                   <span v-for="i in 12" :key="i" class="limit-sparkle">✨</span>
                 </div>
                 <div class="limit-change-text">
-                  {{ game.currentChipAnimation?.data?.oldLimit || 21 }}
+                  {{ animationEvents?.recentLimitChange?.oldLimit || 21 }}
                   →
-                  {{ game.currentChipAnimation?.data?.newLimit || 21 }}
+                  {{ animationEvents?.recentLimitChange?.newLimit || 21 }}
                 </div>
               </div>
             </Transition>
@@ -267,7 +255,7 @@ function pointsClass(sum: number): string {
           <!-- Stake increase animation -->
           <Transition name="stake-increase">
             <div
-              v-if="game.currentChipAnimation?.type === 'stake_increase'"
+              v-if="animationEvents?.recentStakeIncrease"
               class="stake-increase-effect"
             >
               <div class="stake-explosion">
@@ -279,7 +267,7 @@ function pointsClass(sum: number): string {
                 </div>
               </div>
               <div class="stake-increase-text">
-                Angriff +{{ game.currentChipAnimation?.data?.increase || 1 }}!
+                Angriff +{{ animationEvents?.recentStakeIncrease?.increase || 1 }}!
               </div>
             </div>
           </Transition>
@@ -330,15 +318,15 @@ function pointsClass(sum: number): string {
                 <!-- Card return animation -->
                 <Transition name="card-return">
                   <div
-                    v-if="game.currentChipAnimation?.type === 'card_return'"
+                    v-if="animationEvents?.recentCardReturn"
                     class="card-return-effect"
                   >
                     <div
                       class="returning-card"
                       :class="{
-                        'return-from-player': game.currentChipAnimation?.data?.player === 'player',
+                        'return-from-player': animationEvents?.recentCardReturn?.player === 'player',
                         'return-from-opponent':
-                          game.currentChipAnimation?.data?.player === 'opponent',
+                          animationEvents?.recentCardReturn?.player === 'opponent',
                       }"
                     >
                       <div class="card-back"></div>
@@ -350,20 +338,20 @@ function pointsClass(sum: number): string {
                 <!-- Cards swap animation -->
                 <Transition name="cards-swap">
                   <div
-                    v-if="game.currentChipAnimation?.type === 'cards_swap'"
+                    v-if="animationEvents?.recentCardSwap"
                     class="cards-swap-effect"
                   >
                     <!-- Player card moving to opponent -->
                     <div class="swap-card swap-from-player">
                       <div class="card-front">
-                        {{ game.currentChipAnimation?.data?.playerCard?.value || '?' }}
+                        {{ animationEvents?.recentCardSwap?.playerCard?.value || '?' }}
                       </div>
                       <div class="swap-trail-circular player-trail"></div>
                     </div>
                     <!-- Opponent card moving to player -->
                     <div class="swap-card swap-from-opponent">
                       <div class="card-front">
-                        {{ game.currentChipAnimation?.data?.opponentCard?.value || '?' }}
+                        {{ animationEvents?.recentCardSwap?.opponentCard?.value || '?' }}
                       </div>
                       <div class="swap-trail-circular opponent-trail"></div>
                     </div>
@@ -376,12 +364,12 @@ function pointsClass(sum: number): string {
                 <!-- Perfect draw animation -->
                 <Transition name="perfect-draw">
                   <div
-                    v-if="game.currentChipAnimation?.type === 'perfect_draw'"
+                    v-if="animationEvents?.recentPerfectDraw"
                     class="perfect-draw-effect"
                   >
                     <div class="perfect-card">
                       <div class="card-front golden">
-                        {{ game.currentChipAnimation?.data?.newCard?.value || '?' }}
+                        {{ animationEvents?.recentPerfectDraw?.newCard?.value || '?' }}
                       </div>
                       <div class="golden-sparkles">
                         <span v-for="i in 8" :key="i" class="golden-sparkle">✨</span>
@@ -435,7 +423,7 @@ function pointsClass(sum: number): string {
               <button
                 type="button"
                 class="btn btn-hit"
-                :disabled="!game.isPlayerTurn || game.phase !== 'playing' || game.isAnimating"
+                :disabled="!game.isPlayerTurn || game.phase !== 'playing' "
                 @click="game.doHit"
               >
                 Karte ziehen
@@ -443,7 +431,7 @@ function pointsClass(sum: number): string {
               <button
                 type="button"
                 class="btn btn-skip"
-                :disabled="!game.isPlayerTurn || game.phase !== 'playing' || game.isAnimating"
+                :disabled="!game.isPlayerTurn || game.phase !== 'playing' "
                 @click="game.doSkip"
               >
                 Skip
@@ -468,10 +456,10 @@ function pointsClass(sum: number): string {
               <Transition name="shield-activate">
                 <div
                   v-if="
-                    game.currentChipAnimation?.type === 'shield_activate' &&
-                    game.currentChipAnimation?.data?.newShield >
-                      (game.currentChipAnimation?.data?.oldShield || 0) &&
-                    game.currentChipAnimation?.data?.target === 'player'
+                    animationEvents?.recentShieldGain &&
+                    animationEvents.recentShieldGain.newValue >
+                      animationEvents.recentShieldGain.oldValue &&
+                    animationEvents.recentShieldGain.target === 'player'
                   "
                   class="shield-activation-effect"
                 >
@@ -480,8 +468,9 @@ function pointsClass(sum: number): string {
                   </div>
                   <div class="shield-level-indicator">
                     +{{
-                      (game.currentChipAnimation?.data?.newShield || 1) -
-                      (game.currentChipAnimation?.data?.oldShield || 0)
+                      animationEvents?.recentShieldGain
+                        ? animationEvents.recentShieldGain.newValue - animationEvents.recentShieldGain.oldValue
+                        : 1
                     }}
                     🛡️
                   </div>
@@ -491,42 +480,27 @@ function pointsClass(sum: number): string {
               <!-- Heart attack animation for player -->
               <Transition name="heart-attack">
                 <div
-                  v-if="
-                    game.currentRoundAnimation?.type === 'heart_attack' &&
-                    game.currentRoundAnimation?.target === 'player'
+                  v-if="game.lastRoundWinner === 'opponent' && game.phase === 'round_result'
                   "
                   class="heart-attack-effect"
                 >
                   <div class="hearts-breaking">
                     <span
-                      v-for="i in game.currentRoundAnimation?.amount || 1"
+                      v-for="i in 1"
                       :key="i"
                       class="breaking-heart"
                       >💔</span
                     >
                   </div>
                   <div class="attack-lightning">⚡</div>
-                  <div class="damage-number">-{{ game.currentRoundAnimation?.amount || 1 }}</div>
-                  <div
-                    v-if="
-                      game.currentRoundAnimation?.data?.originalAttack &&
-                      game.currentRoundAnimation.data.originalAttack >
-                        (game.currentRoundAnimation.amount || 0)
-                    "
-                    class="attack-value"
-                  >
-                    {{ game.currentRoundAnimation.data.originalAttack }} Angriff
-                  </div>
+                  <div class="damage-number">-1</div>
                 </div>
               </Transition>
 
               <!-- Shield blocking animation for player -->
               <Transition name="shield-block">
                 <div
-                  v-if="
-                    game.currentRoundAnimation?.type === 'shield_block' &&
-                    game.currentRoundAnimation?.target === 'player'
-                  "
+                  v-if="false"
                   class="shield-block-effect"
                 >
                   <div class="blocking-shield">🛡️</div>

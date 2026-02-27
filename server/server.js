@@ -57,6 +57,18 @@ function flipGameState(gameState) {
       shieldPlayer: gameState.round.shieldOpponent,
       shieldOpponent: gameState.round.shieldPlayer,
     },
+    // Flip animation events perspective
+    animationEvents: {
+      ...gameState.animationEvents,
+      recentShieldGain: gameState.animationEvents?.recentShieldGain ? {
+        ...gameState.animationEvents.recentShieldGain,
+        target: gameState.animationEvents.recentShieldGain.target === 'player' ? 'opponent' : 'player'
+      } : null,
+      recentCardReturn: gameState.animationEvents?.recentCardReturn ? {
+        ...gameState.animationEvents.recentCardReturn,
+        target: gameState.animationEvents.recentCardReturn.target === 'player' ? 'opponent' : 'player'
+      } : null,
+    },
   }
 }
 
@@ -482,6 +494,20 @@ io.on('connection', socket => {
     })
 
     console.log(`Game ended in session ${sessionId}`)
+  })
+
+  // Handle animation sync for multiplayer
+  socket.on('animation', async animation => {
+    const sessionId = await storage.getPlayerSession(socket.id)
+    const session = await storage.getSession(sessionId)
+
+    if (!session || session.status !== 'playing') return
+
+    // Forward animation to other player
+    const otherPlayer = session.players.find(p => p.socketId !== socket.id)
+    if (otherPlayer) {
+      io.to(otherPlayer.socketId).emit('animation', animation)
+    }
   })
 
   // Request rematch

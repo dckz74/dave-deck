@@ -77,6 +77,50 @@ export interface RoundState {
 
 export type GamePhase = 'playing' | 'round_result' | 'game_over'
 
+/** Recent events for animation purposes - cleared on next action like lastRoundWinner */
+export interface AnimationEvents {
+  /** Recent shield gain for a player */
+  recentShieldGain: {
+    target: PlayerId
+    oldValue: number
+    newValue: number
+    timestamp: number
+  } | null
+  
+  /** Recent limit change */
+  recentLimitChange: {
+    oldLimit: number
+    newLimit: number
+    timestamp: number
+  } | null
+  
+  /** Recent stake increase */
+  recentStakeIncrease: {
+    increase: number
+    timestamp: number
+  } | null
+  
+  /** Recent card return */
+  recentCardReturn: {
+    player: PlayerId
+    card: Card
+    timestamp: number
+  } | null
+  
+  /** Recent card swap */
+  recentCardSwap: {
+    playerCard: Card
+    opponentCard: Card
+    timestamp: number
+  } | null
+  
+  /** Recent perfect draw */
+  recentPerfectDraw: {
+    newCard: Card
+    timestamp: number
+  } | null
+}
+
 export interface GameState {
   phase: GamePhase
   player: PlayerState
@@ -86,6 +130,8 @@ export interface GameState {
   lastRoundWinner: PlayerId | 'draw' | null
   /** Sieger des gesamten Spiels (wenn phase === 'game_over') */
   gameWinner: PlayerId | null
+  /** Recent animation events - cleared on player actions */
+  animationEvents: AnimationEvents
 }
 
 /** Ergebnis einer Rundenauswertung */

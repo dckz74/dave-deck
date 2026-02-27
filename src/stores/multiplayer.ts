@@ -46,6 +46,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
   const lastError = ref<string | null>(null)
   const rematchRequested = ref(false)
   const rematchFrom = ref<string | null>(null)
+  const animationCallback = ref<((animation: any) => void) | null>(null)
 
   // Computed properties
   const isConnected = computed(() => connectionStatus.value === 'connected')
@@ -268,6 +269,9 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
       action: action.type,
       data: action.data,
       gameState: action.gameState,
+      roundResult: action.roundResult,
+      roundAnimation: action.roundAnimation,
+      roundResultAnimation: action.roundResultAnimation,
     })
   }
 
@@ -448,6 +452,15 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
       sessionStatus.value = 'finished'
     })
 
+    // Animation sync for multiplayer
+    socket.value.on('animation', animation => {
+      console.log('🎭 Received animation from opponent:', animation)
+      // This will be handled by the game store via the animation callback
+      if (animationCallback.value) {
+        animationCallback.value(animation)
+      }
+    })
+
     // Enhanced error handling for game actions
     socket.value.on('error', error => {
       console.warn('🚫 Server rejected action:', error.message)
@@ -565,6 +578,23 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     socket.value.off('rematch-declined', callback)
   }
 
+  /**
+   * Register animation callback for multiplayer sync
+   */
+  function onAnimation(callback: (animation: any) => void): void {
+    animationCallback.value = callback
+  }
+
+  /**
+   * Send animation to other player
+   */
+  function sendAnimation(animation: any): void {
+    if (!socket.value?.connected || sessionStatus.value !== 'playing') {
+      return
+    }
+    socket.value.emit('animation', animation)
+  }
+
   return {
     // State
     connectionStatus,
@@ -606,5 +636,7 @@ export const useMultiplayerStore = defineStore('multiplayer', () => {
     offPlayerDisconnected,
     onRematchDeclined,
     offRematchDeclined,
+    onAnimation,
+    sendAnimation,
   }
 })

@@ -21,17 +21,12 @@ export const useGameStore = defineStore('game', () => {
   const state = ref<GameState>(createInitialState())
   const gameMode = ref<GameMode>('single-player')
   const lastChipFeedback = ref<string | null>(null)
-  const currentChipAnimation = ref<{ type: string; data?: any } | null>(null)
   const currentRoundAnimation = ref<{
     type: 'heart_attack' | 'phew_draw' | 'card_draw' | 'shield_block'
     target?: 'player' | 'opponent'
     amount?: number
     data?: any
   } | null>(null)
-  const isAnimating = ref(false)
-  const chipAnimationQueue = ref<Array<{ chip: Chip; prevState: GameState; newState: GameState }>>(
-    []
-  )
   let chipFeedbackTimer: ReturnType<typeof setTimeout> | null = null
   let animationTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -48,18 +43,18 @@ export const useGameStore = defineStore('game', () => {
   const round = computed(() => state.value.round)
   const lastRoundWinner = computed(() => state.value.lastRoundWinner)
   const gameWinner = computed(() => state.value.gameWinner)
+  const animationEvents = computed(() => state.value.animationEvents)
   const isPlayerTurn = computed(() => state.value.round.currentTurn === 'player')
   const isMultiplayer = computed(() => gameMode.value === 'multiplayer')
   const canTakeAction = computed(() => {
     if (isMultiplayer.value) {
       return (
         isPlayerTurn.value &&
-        !isAnimating.value &&
         multiplayer.sessionStatus === 'playing' &&
         state.value.phase === 'playing'
       )
     }
-    return !isAnimating.value && state.value.phase === 'playing'
+    return state.value.phase === 'playing'
   })
   
   const canHit = computed(() => {
@@ -227,7 +222,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function doSkip() {
-    if (!canTakeAction.value) return // Block Skip during chip animations or if not player's turn
+    if (!canTakeAction.value) return // Block Skip if not player's turn
     const { state: next, roundResult } = skip(state.value, 'player')
     state.value = next
 
@@ -306,7 +301,6 @@ export const useGameStore = defineStore('game', () => {
   function applyChip(chip: Chip) {
     if (!canTakeAction.value) return // Block chip usage if not player's turn or animating
 
-    const prevState = state.value
     const next = useChip(state.value, 'player', chip)
     if (next) {
       // Apply chip effect immediately (no turn change)
@@ -328,158 +322,21 @@ export const useGameStore = defineStore('game', () => {
         chipFeedbackTimer = null
       }, CHIP_FEEDBACK_DURATION_MS)
 
-      // Queue animation (non-blocking)
-      if (!isAnimating.value) {
-        startChipAnimation(chip, prevState, next)
-      } else {
-        chipAnimationQueue.value.push({ chip, prevState, newState: next })
-      }
+      // Animation is now automatic via state-based system
 
       // Send state update to multiplayer opponent
       if (isMultiplayer.value) {
-        const animationType = getAnimationType(chip, prevState, next)
         multiplayer.sendGameAction({
           type: 'chip',
           data: { chip },
           gameState: next,
-          chipAnimation: animationType,
         })
       }
     }
   }
 
-  function startChipAnimation(chip: Chip, prevState: GameState, newState: GameState) {
-    isAnimating.value = true
-    triggerChipAnimation(chip, prevState, newState)
-  }
+  // Animation system removed - now uses state-based animations in game engine
 
-  function processAnimationQueue() {
-    if (chipAnimationQueue.value.length > 0) {
-      const next = chipAnimationQueue.value.shift()!
-      startChipAnimation(next.chip, next.prevState, next.newState)
-    } else {
-      isAnimating.value = false
-    }
-  }
-
-  function triggerChipAnimation(chip: Chip, prevState: GameState, newState: GameState) {
-    const animationType = getAnimationType(chip, prevState, newState)
-    currentChipAnimation.value = animationType
-
-    // Animation duration based on type
-    const duration = getAnimationDuration(animationType.type)
-
-    if (animationTimer) clearTimeout(animationTimer)
-    animationTimer = setTimeout(() => {
-      currentChipAnimation.value = null
-      animationTimer = null
-      processAnimationQueue()
-    }, duration)
-  }
-
-  function getAnimationType(chip: Chip, prevState: GameState, newState: GameState) {
-    const { kind } = chip
-
-    switch (kind) {
-      case 'draw_2':
-      case 'draw_3':
-      case 'draw_4':
-      case 'draw_5':
-      case 'draw_6':
-      case 'draw_7':
-        return {
-          type: 'card_draw',
-          data: {
-            value: CHIP_DEFS[kind].value,
-            newCard: newState.player.hand[newState.player.hand.length - 1],
-          },
-        }
-
-      case 'limit_17':
-      case 'limit_24':
-      case 'limit_27':
-        return {
-          type: 'limit_change',
-          data: {
-            oldLimit: prevState.round.limit,
-            newLimit: newState.round.limit,
-          },
-        }
-
-      case 'stake_plus_1':
-      case 'stake_plus_2':
-        return {
-          type: 'stake_increase',
-          data: {
-            oldStake: prevState.round.stakeModifier,
-            newStake: newState.round.stakeModifier,
-            increase: CHIP_DEFS[kind].value,
-          },
-        }
-
-      case 'shield':
-      case 'shield_plus':
-        return {
-          type: 'shield_activate',
-          data: {
-            oldShield: prevState.round.shieldPlayer,
-            newShield: newState.round.shieldPlayer,
-            increase: CHIP_DEFS[kind].value,
-          },
-        }
-
-      case 'swap_cards':
-        return {
-          type: 'cards_swap',
-          data: {
-            playerCard: newState.player.hand[newState.player.hand.length - 1],
-            opponentCard: newState.opponent.hand[newState.opponent.hand.length - 1],
-          },
-        }
-
-      case 'return_my_card':
-        return {
-          type: 'card_return',
-          data: { player: 'player' },
-        }
-
-      case 'return_opponent_card':
-        return {
-          type: 'card_return',
-          data: { player: 'opponent' },
-        }
-
-      case 'perfect_draw':
-        return {
-          type: 'perfect_draw',
-          data: {
-            newCard: newState.player.hand[newState.player.hand.length - 1],
-          },
-        }
-
-      default:
-        return { type: 'generic', data: {} }
-    }
-  }
-
-  function getAnimationDuration(type: string): number {
-    switch (type) {
-      case 'card_draw':
-      case 'perfect_draw':
-        return 1200
-      case 'cards_swap':
-        return 2500
-      case 'card_return':
-        return 1000
-      case 'limit_change':
-        return 800
-      case 'stake_increase':
-      case 'shield_activate':
-        return 1000
-      default:
-        return 800
-    }
-  }
 
 
   function triggerRoundResultAnimation(roundResult: {
@@ -590,7 +447,6 @@ export const useGameStore = defineStore('game', () => {
     const action = getOpponentAction(state.value)
 
     if (action.type === 'chip') {
-      const prevState = state.value
       const next = useChip(state.value, 'opponent', action.chip)
       if (next) {
         state.value = next
@@ -605,8 +461,7 @@ export const useGameStore = defineStore('game', () => {
           chipFeedbackTimer = null
         }, CHIP_FEEDBACK_DURATION_MS)
 
-        // Always start chip animation for AI
-        startChipAnimation(action.chip, prevState, next)
+        // Animation is now automatic via state-based system
 
         // Continue with next chip after animation delay
         setTimeout(() => {
@@ -760,8 +615,17 @@ export const useGameStore = defineStore('game', () => {
               if (state.value.phase === 'game_over') {
                 recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
               } else {
-                // Trigger round result animation
-                triggerRoundResultAnimation(data.roundResult)
+                // Trigger round result animation with the received animation data
+                if (data.roundResultAnimation) {
+                  currentRoundAnimation.value = data.roundResultAnimation
+                  setTimeout(() => {
+                    currentRoundAnimation.value = null
+                    nextRound()
+                  }, 2500)
+                } else {
+                  // Fallback to normal animation
+                  triggerRoundResultAnimation(data.roundResult)
+                }
               }
             }
           }, 1200) // Match animation duration
@@ -785,13 +649,22 @@ export const useGameStore = defineStore('game', () => {
           if (state.value.phase === 'game_over') {
             recordGameEndStatistics(state.value.gameWinner!, state.value.player.lives, gameMode.value)
           } else {
-            // Trigger round result animation for opponent's skip
-            triggerRoundResultAnimation(data.roundResult)
+            // Trigger round result animation using the received animation data
+            if (data.roundAnimation) {
+              currentRoundAnimation.value = data.roundAnimation
+              setTimeout(() => {
+                currentRoundAnimation.value = null
+                nextRound()
+              }, 2500)
+            } else {
+              // Fallback to normal animation
+              triggerRoundResultAnimation(data.roundResult)
+            }
           }
         }
 
         // Handle round results for actions that didn't have animations (fallback)
-        if ((data.action === 'hit' || data.action === 'skip') && data.roundResult && !data.roundAnimation) {
+        if ((data.action === 'hit' || data.action === 'skip') && data.roundResult && !data.roundAnimation && !data.roundResultAnimation) {
           // Record statistics for actions without animations
           if (data.action === 'hit') {
             const opponentSum = state.value.opponent.hand.reduce((s, c) => s + c.value, 0)
@@ -841,18 +714,7 @@ export const useGameStore = defineStore('game', () => {
             chipFeedbackTimer = null
           }, CHIP_FEEDBACK_DURATION_MS)
 
-          // Trigger chip animation for opponent's chip usage
-          if (data.chipAnimation) {
-            if (!isAnimating.value) {
-              isAnimating.value = true
-              currentChipAnimation.value = data.chipAnimation
-              const duration = getAnimationDuration(data.chipAnimation.type)
-              setTimeout(() => {
-                currentChipAnimation.value = null
-                isAnimating.value = false
-              }, duration)
-            }
-          }
+          // Animation is now automatic via state-based system
         }
 
       }
@@ -954,6 +816,8 @@ export const useGameStore = defineStore('game', () => {
         router.push('/')
       }
     })
+
+    // Animation system is now automatically synced via game state
   }
 
   // Cleanup function for when store is destroyed
@@ -972,15 +836,13 @@ export const useGameStore = defineStore('game', () => {
     round,
     lastRoundWinner,
     gameWinner,
+    animationEvents,
     isPlayerTurn,
     isMultiplayer,
     canTakeAction,
     canHit,
     lastChipFeedback,
-    currentChipAnimation,
     currentRoundAnimation,
-    isAnimating,
-    chipAnimationQueue,
 
     // Actions
     resetGame,

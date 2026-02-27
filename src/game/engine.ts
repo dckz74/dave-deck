@@ -100,6 +100,14 @@ export function createInitialState(startingPlayer: PlayerId = 'player'): GameSta
     },
     lastRoundWinner: null,
     gameWinner: null,
+    animationEvents: {
+      recentShieldGain: null,
+      recentLimitChange: null,
+      recentStakeIncrease: null,
+      recentCardReturn: null,
+      recentCardSwap: null,
+      recentPerfectDraw: null,
+    },
   }
 }
 
@@ -120,7 +128,7 @@ function cloneState(state: GameState): GameState {
 
 /** Wendet Lebensverlust an und prüft Game Over. */
 function applyLifeLoss(state: GameState, who: PlayerId, amount: number): GameState {
-  const s = cloneState(state)
+  let s = cloneState(state)
   const p = who === 'player' ? s.player : s.opponent
   p.lives = Math.max(0, p.lives - amount)
   if (p.lives <= 0) {
@@ -139,7 +147,7 @@ export interface StartNewRoundOptions {
 
 /** Start einer neuen Runde: frisches Deck, je 1 Startkarte, 9 im Deck. Limit/Shields zurückgesetzt. Chips kommen ausschließlich aus options (kein Lesen aus state). */
 export function startNewRound(state: GameState, options: StartNewRoundOptions): GameState {
-  const s = cloneState(state)
+  let s = cloneState(state)
   s.round.limit = DEFAULT_LIMIT
   s.round.lastMoveWasSkip = false
   s.round.stakeModifier = 0
@@ -174,7 +182,7 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
   const chipIndex = me.chips.findIndex(c => c.id === chip.id)
   if (chipIndex === -1) return null
 
-  const s = cloneState(state)
+  let s = cloneState(state)
   const myHand = playerId === 'player' ? s.player : s.opponent
   const otherHand = playerId === 'player' ? s.opponent : s.player
   const deck = s.round.deck
@@ -213,17 +221,21 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
     }
     case ChipKind.Limit17:
     case ChipKind.Limit24:
-    case ChipKind.Limit27:
+    case ChipKind.Limit27: {
+      const oldLimit = s.round.limit
       s.round.limit = limitFromChip(chip.kind)
+      s = setLimitChangeEvent(s, oldLimit, s.round.limit)
       removeChip()
       afterChipUsed(s)
       return s
+    }
     case ChipKind.SwapCards: {
       if (myHand.hand.length >= 2 && otherHand.hand.length >= 2) {
         const myLast = myHand.hand[myHand.hand.length - 1]
         const otherLast = otherHand.hand[otherHand.hand.length - 1]
         myHand.hand[myHand.hand.length - 1] = otherLast
         otherHand.hand[otherHand.hand.length - 1] = myLast
+        s = setCardSwapEvent(s, myLast, otherLast)
       }
       removeChip()
       afterChipUsed(s)
@@ -231,11 +243,13 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
     }
     case ChipKind.StakePlus1:
       s.round.stakeModifier += 1
+      s = setStakeIncreaseEvent(s, 1)
       removeChip()
       afterChipUsed(s)
       return s
     case ChipKind.StakePlus2:
       s.round.stakeModifier += 2
+      s = setStakeIncreaseEvent(s, 2)
       removeChip()
       afterChipUsed(s)
       return s
@@ -245,6 +259,7 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
         deck.push(last)
         s.round.deck = [...deck]
         shuffleDeck(s.round.deck)
+        s = setCardReturnEvent(s, playerId, last)
       }
       removeChip()
       afterChipUsed(s)
@@ -256,6 +271,8 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
         deck.push(last)
         s.round.deck = [...deck]
         shuffleDeck(s.round.deck)
+        const targetPlayerId = playerId === 'player' ? 'opponent' : 'player'
+        s = setCardReturnEvent(s, targetPlayerId, last)
       }
       removeChip()
       afterChipUsed(s)
@@ -265,23 +282,34 @@ export function useChip(state: GameState, playerId: PlayerId, chip: Chip): GameS
       const sum = handSum(myHand.hand)
       const bestValue = getBestCardValue(sum, s.round.limit)
       const card = bestValue !== undefined ? drawCardByValue(deck, bestValue) : undefined
-      if (card) myHand.hand.push(card)
+      if (card) {
+        myHand.hand.push(card)
+        s = setPerfectDrawEvent(s, card)
+      }
       removeChip()
       afterChipUsed(s)
       return s
     }
-    case ChipKind.Shield:
+    case ChipKind.Shield: {
+      const oldShield = playerId === 'player' ? s.round.shieldPlayer : s.round.shieldOpponent
       if (playerId === 'player') s.round.shieldPlayer += 1
       else s.round.shieldOpponent += 1
+      const newShield = playerId === 'player' ? s.round.shieldPlayer : s.round.shieldOpponent
+      s = setShieldGainEvent(s, playerId, oldShield, newShield)
       removeChip()
       afterChipUsed(s)
       return s
-    case ChipKind.ShieldPlus:
+    }
+    case ChipKind.ShieldPlus: {
+      const oldShield = playerId === 'player' ? s.round.shieldPlayer : s.round.shieldOpponent
       if (playerId === 'player') s.round.shieldPlayer += 2
       else s.round.shieldOpponent += 2
+      const newShield = playerId === 'player' ? s.round.shieldPlayer : s.round.shieldOpponent
+      s = setShieldGainEvent(s, playerId, oldShield, newShield)
       removeChip()
       afterChipUsed(s)
       return s
+    }
     default:
       return null
   }
@@ -292,7 +320,9 @@ export function hit(state: GameState, playerId: PlayerId): { state: GameState; r
   if (state.phase !== 'playing' || state.round.currentTurn !== playerId) return null
   const card = drawFromDeck(state.round.deck)
   if (!card) return null // Deck is empty - let caller handle this
-  const s = cloneState(state)
+  let s = cloneState(state)
+  // Clear animation events on player action
+  s = clearAnimationEvents(s)
   const p = playerId === 'player' ? s.player : s.opponent
   p.hand.push(card)
   const newChip = maybeGrantChip()
@@ -365,7 +395,9 @@ export function skip(
   roundResult?: { winner: PlayerId | 'draw'; lifeLost: PlayerId | null; lifeAmount: number }
 } {
   if (state.phase !== 'playing' || state.round.currentTurn !== playerId) return { state }
-  const s = cloneState(state)
+  let s = cloneState(state)
+  // Clear animation events on player action
+  s = clearAnimationEvents(s)
   const wasSkip = s.round.lastMoveWasSkip
   s.round.lastMoveWasSkip = true
   s.round.currentTurn = playerId === 'player' ? 'opponent' : 'player'
@@ -418,4 +450,131 @@ export function skip(
     }
   }
   return { state: s }
+}
+
+/** Clear all animation events (called on player actions like hit/skip) */
+export function clearAnimationEvents(state: GameState): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      recentShieldGain: null,
+      recentLimitChange: null,
+      recentStakeIncrease: null,
+      recentCardReturn: null,
+      recentCardSwap: null,
+      recentPerfectDraw: null,
+    },
+  }
+}
+
+/** Set shield gain animation event */
+export function setShieldGainEvent(
+  state: GameState,
+  target: PlayerId,
+  oldValue: number,
+  newValue: number
+): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      ...state.animationEvents,
+      recentShieldGain: {
+        target,
+        oldValue,
+        newValue,
+        timestamp: Date.now(),
+      },
+    },
+  }
+}
+
+/** Set limit change animation event */
+export function setLimitChangeEvent(
+  state: GameState,
+  oldLimit: number,
+  newLimit: number
+): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      ...state.animationEvents,
+      recentLimitChange: {
+        oldLimit,
+        newLimit,
+        timestamp: Date.now(),
+      },
+    },
+  }
+}
+
+/** Set stake increase animation event */
+export function setStakeIncreaseEvent(
+  state: GameState,
+  increase: number
+): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      ...state.animationEvents,
+      recentStakeIncrease: {
+        increase,
+        timestamp: Date.now(),
+      },
+    },
+  }
+}
+
+/** Set card return animation event */
+export function setCardReturnEvent(
+  state: GameState,
+  player: PlayerId,
+  card: Card
+): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      ...state.animationEvents,
+      recentCardReturn: {
+        player,
+        card,
+        timestamp: Date.now(),
+      },
+    },
+  }
+}
+
+/** Set card swap animation event */
+export function setCardSwapEvent(
+  state: GameState,
+  playerCard: Card,
+  opponentCard: Card
+): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      ...state.animationEvents,
+      recentCardSwap: {
+        playerCard,
+        opponentCard,
+        timestamp: Date.now(),
+      },
+    },
+  }
+}
+
+/** Set perfect draw animation event */
+export function setPerfectDrawEvent(
+  state: GameState,
+  newCard: Card
+): GameState {
+  return {
+    ...state,
+    animationEvents: {
+      ...state.animationEvents,
+      recentPerfectDraw: {
+        newCard,
+        timestamp: Date.now(),
+      },
+    },
+  }
 }
