@@ -517,6 +517,22 @@ export const useGameStore = defineStore('game', () => {
       const result = hit(state.value, 'opponent')
       if (result) {
         const chipReceived = result.state.opponent.chips.length > prevChipCount
+
+        // Get the newly drawn card value
+        const newCard = result.state.opponent.hand[result.state.opponent.hand.length - 1]
+
+        // Trigger card draw animation
+        currentRoundAnimation.value = {
+          type: 'card_draw',
+          target: 'opponent',
+          data: { value: newCard.value },
+        }
+
+        // Clear animation after it completes
+        setTimeout(() => {
+          currentRoundAnimation.value = null
+        }, 1200) // Match animation duration
+
         state.value = result.state
         statistics.recordCardDrawn(chipReceived)
 
